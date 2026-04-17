@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications | KaresaBari</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/notice.css">
+</head>
+<body>
+
+{% include 'components/header.html' %}
+
+<main class="main">
+  <!-- Notification -->
+    <div class="notification-wrapper">
+        <div class="notification-icon" onclick="toggleNotification(event)">
+            <img src="/public/images/notification.png" class="icon" alt="Notifications">
+            <span class="badge" id="notificationBadge">3</span>
+        </div>
+
+        <!-- Popup Dropdown -->
+        <div class="notification-dropdown" id="notificationBox">
+            <div class="dropdown-header">
+                <h4>Notifications</h4>
+                <span class="mark-read" onclick="markAllRead()">Mark all as read</span>
+            </div>
+
+            <!-- Example Notifications -->
+            <div class="notification-item unread">
+                <h5>🌧️ Rain Expected</h5>
+                <p>Light rain expected tomorrow.</p>
+                <span class="time">2 hours ago</span>
+            </div>
+
+            <div class="notification-item">
+                <h5>🌱 Soil Result Ready</h5>
+                <p>Your soil analysis is completed.</p>
+                <span class="time">Yesterday</span>
+            </div>
+
+            <div class="notification-item">
+                <h5>🦠 Disease Alert</h5>
+                <p>Leaf disease detected in your crop.</p>
+                <span class="time">2 days ago</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+<script>
+function toggleNotification(event) {
+    event.stopPropagation(); // prevent closing immediately
+    const box = document.getElementById("notificationBox");
+    box.style.display = (box.style.display === "block") ? "none" : "block";
+}
+
+// Close dropdown when clicking outside
+document.addEventListener("click", function(event) {
+    const box = document.getElementById("notificationBox");
+    const icon = document.querySelector(".notification-icon");
+    if (!box.contains(event.target) && !icon.contains(event.target)) {
+        box.style.display = "none";
+    }
+});
+
+// Mark all as read
+function markAllRead() {
+    const items = document.querySelectorAll(".notification-item.unread");
+    items.forEach(item => item.classList.remove("unread"));
+    document.getElementById("notificationBadge").style.display = "none";
+}
+</script>
+
+</html>

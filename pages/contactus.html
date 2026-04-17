@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | KaresaBari</title>
+    <link rel="stylesheet" href="/css/contactus.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body>
+{% include "components/header.html" %}
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<div class="outer-container">
+    <main class="container">
+        <a href="/aboutus" class="back-btn">← Back to About</a>
+
+        <section class="hero">
+            <h1>Contact Our <span>Experts</span></h1>
+            <p>Your urban garden deserves professional care. Ask us anything.</p>
+        </section>
+
+        <div class="grid">
+            <!-- Form -->
+            <div class="form-card">
+                <form id="contactForm" action="/contact" method="POST">
+                    <div class="row">
+                        <div class="field">
+                            <label>Full Name</label>
+                            <input name="full_name" type="text" placeholder="Name" required>
+                        </div>
+                        <div class="field">
+                            <label>Email Address</label>
+                            <input name="email" type="email" placeholder="karesa@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Subject</label>
+                        <select name="subject">
+                            <option>Soil Analysis Help</option>
+                            <option>Disease Diagnosis</option>
+                            <option>Technical Support</option>
+                            <option>General Inquiry</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Your Message</label>
+                        <textarea id="messageArea" name="message" rows="6" required placeholder="Write your message here..."></textarea>
+                        <div class="counter-row">
+                            <span id="wordCount">0</span> / 250 words
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn">Send Message</button>
+                </form>
+            </div>
+
+            <!-- Info -->
+            <div class="info-section">
+                <div class="info-card">
+                    <h3>Get In Touch</h3>
+                    <div class="info-item">
+                        <div class="icon"><span class="material-symbols-outlined">mail</span></div>
+                        <div class="text"><p class="value">support@karesabari.com</p></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon"><span class="material-symbols-outlined">call</span></div>
+                        <div class="text"><p class="value">+977-9800000000</p></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon"><span class="material-symbols-outlined">location_on</span></div>
+                        <div class="text"><p class="value">Kathmandu, Nepal</p></div>
+                    </div>
+                </div>
+                
+                <div class="help-box">
+                    <h4>Human Support</h4>
+                    <p>Our AI is fast, but our human experts understand the local Nepalese soil better than anyone. We usually reply within 24 hours.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+{% include "components/footer.html" %}
+
+<script>
+    const messageArea = document.getElementById('messageArea');
+    const wordCountDisplay = document.getElementById('wordCount');
+    const contactForm = document.getElementById('contactForm');
+
+    // Toast Function
+    function showToast(title, message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        const icon = type === 'success' ? 'check_circle' : 'warning';
+        
+        toast.innerHTML = `
+            <span class="material-symbols-outlined">${icon}</span>
+            <div class="toast-content">
+                <p class="toast-title">${title}</p>
+                <p class="toast-message">${message}</p>
+            </div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'toastExit 0.5s forwards';
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
+    // Word Count Tracker
+    messageArea.addEventListener('input', () => {
+        const words = messageArea.value.trim().split(/\s+/).filter(word => word.length > 0);
+        const count = words.length;
+        wordCountDisplay.innerText = count;
+        wordCountDisplay.style.color = count > 250 ? "#ef4444" : "#64748b";
+    });
+
+    // Form Submit logic
+    contactForm.addEventListener('submit', (e) => {
+        const words = messageArea.value.trim().split(/\s+/).filter(word => word.length > 0);
+        if (words.length > 250) {
+            e.preventDefault();
+            showToast('Word Limit Exceeded', 'Please shorten your message to under 250 words.', 'error');
+        }
+    });
+
+    // Detect URL Success Message
+    window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('msg') === 'sent') {
+            showToast('Message Sent!', 'We have received your inquiry and will get back to you soon.', 'success');
+        }
+    };
+</script>
+</body>
+</html>

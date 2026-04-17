@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaresaBari | Register</title>
+    <link rel="stylesheet" href="../../css/auth.css">
+</head>
+<body>
+
+<div class="auth-card">
+    <div class="logo-container">
+        <img src="../../public/images/header.png" class="logo-img" alt="Logo">
+    </div>
+    <h1 class="title">Create Account</h1>
+    <p class="subtitle">Join KaresaBari and start gardening</p>
+    
+    <!-- novalidate stops the browser's ugly bubbles -->
+    <form id="regForm" method="post" action="/register" novalidate>
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="name" name="full_name" placeholder="Name">
+        </div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="email" name="email" placeholder="KaresaBari@gmail.com">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="pass" name="password" placeholder="Min. 8 characters">
+        </div>
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" id="conf" name="confirm_password" placeholder="Repeat password">
+        </div>
+        <button type="submit" class="btn-primary">Register Now</button>
+    </form>
+    <div class="auth-links">Already have an account? <a href="login">Login here</a></div>
+</div>
+
+<!-- Popup Modal -->
+<div id="popupModal" class="modal-overlay">
+    <div id="modalBox" class="modal-box error">
+        <span class="modal-icon">⚠️</span>
+        <h3 id="modalTitle">Registration Error</h3>
+        <p id="modalDesc"></p>
+        <button onclick="closeModal()" class="modal-btn">OK</button>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('popupModal');
+    const modalDesc = document.getElementById('modalDesc');
+
+    function showPopup(msg) {
+        modalDesc.innerText = msg;
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() { modal.style.display = 'none'; }
+
+    document.getElementById('regForm').onsubmit = (e) => {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('pass').value;
+        const conf = document.getElementById('conf').value;
+        const gmailRegex = /^[^\s@]+@gmail\.com$/;
+
+        if (!name || !email || !pass || !conf) {
+            e.preventDefault();
+            showPopup("All boxes must be filled! 🌱");
+        } else if (!gmailRegex.test(email)) {
+            e.preventDefault();
+            showPopup("Only '@gmail.com' addresses are allowed.");
+        } else if (pass.length < 8) {
+            e.preventDefault();
+            showPopup("Password must be at least 8 characters long.");
+        } else if (pass !== conf) {
+            e.preventDefault();
+            showPopup("Mismatch: Passwords do not match. Please verify.");
+        }
+    };
+</script>
+</body>
+</html>

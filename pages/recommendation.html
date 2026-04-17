@@ -1,0 +1,213 @@
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KaresaBari | Vegetable Recommendations</title>
+<link rel="stylesheet" href="/css/recommendation.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+{% include "components/header.html" %}
+<main class="container">
+  <div class="flex">
+    <!-- Sidebar Filters -->
+    <aside class="sidebar">
+      <div class="sidebar-content">
+        <div class="sidebar-header">
+          <h2><span class="material-icons">filter_list</span> Filters</h2>
+          <button type="button" class="reset-btn" onclick="resetFilters()">Reset</button>
+        </div>
+
+        <form class="filters-form" id="filtersForm" method="POST" action="/recommend">
+          <div class="filter">
+            <label><span class="material-icons">terrain</span> Soil Category</label>
+            <select name="soil_type" id="soil_type">
+              <option value="Alluvial_Soil">Alluvial Soil</option>
+              <option value="Arid_Soil">Arid Soil</option>
+              <option value="Black_Soil">Black Soil</option>
+              <option value="Laterite_Soil">Laterite Soil</option>
+              <option value="Mountain_Soil">Mountain Soil</option>
+              <option value="Red_Soil">Red Soil</option>
+              <option value="Yellow_Soil">Yellow Soil</option>
+            </select>
+          </div>
+
+          <div class="filter">
+            <label><span class="material-icons">calendar_today</span> Season</label>
+            <div class="season-buttons">
+              <button type="button" class="season-btn" data-season="spring">Spring</button>
+              <button type="button" class="season-btn" data-season="summer">Summer</button>
+              <button type="button" class="season-btn" data-season="monsoon">Monsoon</button>
+              <button type="button" class="season-btn" data-season="winter">Winter</button>
+            </div>
+          </div>
+          <input type="hidden" name="season" id="season" value="spring">
+
+          <div class="filter">
+            <label><span class="material-icons">wb_sunny</span> Sunlight</label>
+            <select name="sunlight_hours" id="sunlight_hours" required>
+              <option value="2">Partial Shade (2 hours)</option>
+              <option value="6">Moderate Sun (6 hours)</option>
+              <option value="10">Full Sun (10+ hours)</option>
+            </select>
+          </div>
+
+          <div class="filter">
+            <label><span class="material-icons">thermostat</span> Temperature</label>
+            <select name="temperature" id="temperature" required>
+              <option value="15">Cool (15°C)</option>
+              <option value="25">Normal (25°C)</option>
+              <option value="30">Warm (30°C)</option>
+            </select>
+          </div>
+
+          <div class="filter">
+            <label><span class="material-icons">public</span> Climate Zone</label>
+            <select name="climate_zone" id="climate_zone">
+              <option value="Terai">Terai</option>
+              <option value="Hill">Hill</option>
+              <option value="Mountain">Mountain</option>
+              <option value="Valley">Valley</option>
+            </select>
+          </div>
+
+          <button class="apply-btn" type="submit">Apply Filters</button>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Main Recommendations -->
+    <div class="recommendations">
+      <div class="recommendations-header">
+        <h1>Top Recommendations</h1>
+        <p>Tailored for <span class="highlight">Bagmati Province</span> during the <span class="highlight" id="currentSeasonDisplay">Spring</span> season.</p>
+      </div>
+
+      <div class="cards-container initial-hidden">
+        {% for item in results %}
+        <div class="veg-card">
+          <div class="veg-image">
+            <img src="{{ item.image }}" alt="{{ item.crop }}">
+          </div>
+          <div class="veg-info">
+            <h3>{{ item.crop }}</h3>
+            <div class="why-list">
+              <strong>Why Grow This?</strong>
+              <ul>
+                {% for reason in item.why.split(",") %}
+                  <li>{{ reason.strip() }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            <button class="start-growing-btn" onclick="startCrop('{{ item.crop | urlencode }}')">Start Growing</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modals & Loaders -->
+<div id="confirmationModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 id="modalTitle">Confirm Action</h3>
+    <p id="modalMessage">Are you sure you want to proceed?</p>
+    <div class="modal-actions">
+      <button id="cancelButton" class="btn-secondary">Cancel</button>
+      <button id="confirmButton" class="btn-primary">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+  <p>Finding the best crops...</p>
+</div>
+
+{% include "components/footer.html" %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filtersForm = document.getElementById('filtersForm');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const cardsContainer = document.querySelector('.cards-container');
+    const recommendationsHeader = document.querySelector('.recommendations-header');
+
+    // 1. Initial Animation
+    setTimeout(() => {
+        cardsContainer.classList.remove('initial-hidden');
+        cardsContainer.classList.add('fade-in-up');
+    }, 100);
+
+    // 2. Season Button Setup
+    const seasonInput = document.getElementById('season');
+    document.querySelectorAll('.season-btn').forEach(button => {
+        if (button.dataset.season === seasonInput.value) button.classList.add('active');
+        button.addEventListener('click', function() {
+            setSeason(this.dataset.season);
+        });
+    });
+
+    // 3. Smooth AJAX Form
+    filtersForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        loadingOverlay.classList.add('active');
+        cardsContainer.classList.add('loading-out');
+
+        try {
+            const response = await fetch(filtersForm.action, {
+                method: 'POST',
+                body: new FormData(filtersForm)
+            });
+            const htmlText = await response.text();
+            const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+
+            setTimeout(() => {
+                recommendationsHeader.innerHTML = doc.querySelector('.recommendations-header').innerHTML;
+                cardsContainer.innerHTML = doc.querySelector('.cards-container').innerHTML;
+
+                cardsContainer.classList.remove('loading-out');
+                cardsContainer.style.animation = 'none';
+                cardsContainer.offsetHeight; // Reflow
+                cardsContainer.style.animation = null;
+                cardsContainer.classList.add('fade-in-up');
+                loadingOverlay.classList.remove('active');
+            }, 400);
+        } catch (error) {
+            loadingOverlay.classList.remove('active');
+            cardsContainer.classList.remove('loading-out');
+        }
+    });
+});
+
+function setSeason(s) {
+    document.getElementById('season').value = s;
+    document.querySelectorAll('.season-btn').forEach(b => b.classList.toggle('active', b.dataset.season === s));
+    document.getElementById('currentSeasonDisplay').textContent = s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function resetFilters() {
+    document.getElementById('soil_type').value = 'Alluvial_Soil';
+    setSeason('spring');
+    document.getElementById('sunlight_hours').value = '2';
+    document.getElementById('temperature').value = '15';
+    document.getElementById('climate_zone').value = 'Terai';
+    document.getElementById('filtersForm').dispatchEvent(new Event('submit'));
+}
+
+function startCrop(crop) {
+    const decoded = decodeURIComponent(crop);
+    document.getElementById('modalTitle').textContent = 'Confirm Growing';
+    document.getElementById('modalMessage').textContent = `Do you want to start growing "${decoded}"?`;
+    const modal = document.getElementById('confirmationModal');
+    modal.classList.add('active');
+
+    document.getElementById('confirmButton').onclick = () => {
+        modal.classList.remove('active');
+        fetch(`/start-growing/${encodeURIComponent(crop)}`, { method: "POST" })
+        .then(res => window.location.href = res.redirected ? res.url : "/mygarden")
+        .catch(err => console.error(err));
+    };
+    document.getElementById('cancelButton').onclick = () => modal.classList.remove('active');
+}
+</script>

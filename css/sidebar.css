@@ -1,0 +1,129 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body */
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0b1326;
+  color: #dae2fd;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: #0f172a;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 12px;
+}
+
+/* Logo Section */
+.logo {
+  display: flex;
+  flex-direction: column; /* stack image and text vertically */
+  align-items: center;    /* center them horizontally */
+  gap: 6px;               /* spacing between image and text */
+  padding: 15px 0;        /* vertical padding */
+}
+
+.logo-img, .logo-icon {
+  width: 170px;   /* instead of 250px */
+  height: 150px;  /* small enough to fit */
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Navigation */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Nav Item */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #94a3b8;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+/* Icon */
+.material-symbols-outlined {
+  font-size: 22px;
+  transition: transform 0.3s ease;
+}
+
+/* Hover (ONLY highlight, no default active) */
+.nav-item:hover {
+  background: rgba(16, 185, 129, 0.08);
+  color: #34d399;
+}
+
+.nav-item:hover .material-symbols-outlined {
+  transform: scale(1.15);
+}
+
+/* Logout Section */
+/* ================= LOGOUT BUTTON ================= */
+.logout-container {
+  margin-top: auto;
+  padding: 10px;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 9999px; /* super rounded pill shape */
+  background: linear-gradient(135deg, #34d399, #4be277); /* cute gradient green */
+  color: #0f172a; /* dark text for contrast */
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(75, 226, 119, 0.3); /* subtle shadow */
+  transition: all 0.3s ease;
+}
+
+/* Icon inside logout */
+.logout-btn .material-symbols-outlined {
+  font-size: 20px;
+  transition: transform 0.3s ease;
+}
+
+/* Hover effect */
+.logout-btn:hover {
+  background: linear-gradient(135deg, #4be277, #34d399);
+  color: #ffffff;
+  box-shadow: 0 6px 12px rgba(75, 226, 119, 0.5);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.logout-btn:hover .material-symbols-outlined {
+  transform: rotate(-15deg) scale(1.2); /* playful icon animation */
+}
+
+/* Active / click effect */
+.logout-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 2px 6px rgba(75, 226, 119, 0.3);
+}

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Pathology Lab | KaresaBari</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="/css/disease.css">
+</head>
+<body>
+
+{% include "components/header.html" %}
+
+<main class="lab-container">
+    <header class="lab-header">
+        <h1>Plant Pathology Lab</h1>
+        <p>Upload images for instant AI-powered disease diagnosis.</p>
+    </header>
+
+    <div class="lab-grid">
+        <!-- LEFT PANEL: UPLOAD & HISTORY -->
+        <aside class="left-panel">
+            <div class="card upload-card">
+                <div class="card-title">
+                    <span class="material-symbols-outlined">upload_file</span> Image Upload
+                </div>
+                <form id="uploadForm" action="/disease/upload" method="post" enctype="multipart/form-data">
+                    <div class="drop-zone" id="dropZone" onclick="document.getElementById('file-input').click()">
+                        <div class="icon-circle"><span class="material-symbols-outlined">photo_camera</span></div>
+                        <h3>Drop leaf photo here</h3>
+                        <p class="hint-text">Supports JPG, PNG (Max 15MB)</p>
+                        <input type="file" name="file" id="file-input" hidden accept="image/*" onchange="validateAndUpload(this)">
+                        <button type="button" class="btn-select">Select from Gallery</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card history-card">
+                <div class="history-header"><strong>Recent Diagnoses</strong></div>
+                <div class="history-list">
+                    {% if history %}
+                        {% for item in history %}
+                        <div class="history-item">
+                            <div onclick="window.location.href='/disease/report/{{ item.id }}'" class="history-clickable">
+                                <img src="/uploads/{{ item.image }}" alt="history thumbnail">
+                                <div class="history-info">
+                                    <strong>Report #{{ item.id }}</strong>
+                                    <span>Click to view results</span>
+                                </div>
+                            </div>
+                            <!-- Delete Button triggers Modal instead of simple confirm -->
+                            <button type="button" class="btn-delete-icon" onclick="showDeleteModal('{{ item.id }}')">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="empty-history">No history found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT PANEL: RESULTS -->
+        <section class="right-panel">
+            {% if result %}
+            <!-- Conditional class: report-healthy or report-infected -->
+            <div class="card report-card {% if 'Healthy' in result.disease %}status-healthy{% else %}status-infected{% endif %}" id="printableReport">
+                <div class="report-header-line"></div>
+                
+                <div class="report-top-flex">
+                    <div class="disease-meta">
+                        <div class="report-scan-thumb"><img src="/uploads/{{ uploaded_file }}" alt="Scan"></div>
+                        <div class="title-area">
+                            <span class="status-badge">
+                                {% if 'Healthy' in result.disease %}
+                                    <span class="material-symbols-outlined">check_circle</span> NO PATHOGENS DETECTED
+                                {% else %}
+                                    <span class="material-symbols-outlined">error</span> INFECTION DETECTED
+                                {% endif %}
+                            </span>
+                            <h2>{{ result.disease }}</h2>
+                            <p class="scientific">Host Plant: {{ result.plant }}</p>
+                        </div>
+                    </div>
+                    <div class="confidence-meter">
+                        <small>CONFIDENCE</small>
+                        <div class="conf-value">{{ result.confidence }}%</div>
+                    </div>
+                </div>
+
+                <div class="report-main-grid">
+                    <div class="analysis-col">
+                        <div class="section-label">SEVERITY INDEX</div>
+                        <div class="severity-blocks">
+                            {% for i in range(1, 6) %}
+                            <div class="block {% if i <= (result.severity | default(1)) %}lvl-{{ i }}{% endif %}"></div>
+                            {% endfor %}
+                        </div>
+                        <p class="analysis-text">"{{ result.analysis_note }}"</p>
+                    </div>
+                    <div class="prescription-col">
+                        <div class="section-label">ROADMAP</div>
+                        <div class="roadmap">
+                            <div class="roadmap-item">
+                                <div class="step-circle">01</div>
+                                <div class="step-content"><strong>Immediate Action</strong><p>{{ result.immediate_action }}</p></div>
+                            </div>
+                            <div class="roadmap-item">
+                                <div class="step-circle">02</div>
+                                <div class="step-content"><strong>Management/Treatment</strong><p>{{ result.treatment }}</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-footer">
+                    <button class="btn-print" onclick="window.print()">
+                        <span class="material-symbols-outlined">print</span> Print Medical Report
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <span class="material-symbols-outlined">biotech</span>
+                <p>Waiting for scan analysis...</p>
+                <small>Upload a photo on the left to begin diagnosis.</small>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</main>
+
+<!-- POPUP MODALS -->
+
+<!-- 1. Delete Confirmation Modal -->
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="material-symbols-outlined modal-icon-warn">delete_forever</span>
+        <h3>Delete Diagnosis?</h3>
+        <p>This action cannot be undone. Are you sure you want to remove this record?</p>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+            <form id="deleteForm" action="" method="POST">
+                <button type="submit" class="btn-danger">Confirm Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. File Too Large Modal -->
+<div id="sizeErrorModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="material-symbols-outlined modal-icon-err">warning</span>
+        <h3>File Too Large</h3>
+        <p>The image size exceeds the 15MB limit. Please compress your image and try again.</p>
+        <button class="btn-primary" onclick="closeModal('sizeErrorModal')">Got it</button>
+    </div>
+</div>
+
+<!-- 3. Invalid Image/Detection Failed Modal (Already in your code, styled) -->
+{% if error_msg %}
+<div id="invalidImgModal" class="modal-overlay active">
+    <div class="modal-content">
+        <span class="material-symbols-outlined modal-icon-err">hide_image</span>
+        <h3>Diagnosis Failed</h3>
+        <p>{{ error_msg }}</p>
+        <button class="btn-primary" onclick="closeModal('invalidImgModal')">Try Again</button>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// --- Modal Logic ---
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+function showDeleteModal(reportId) {
+    const modal = document.getElementById('deleteModal');
+    const form = document.getElementById('deleteForm');
+    form.action = `/disease/delete/${reportId}`;
+    modal.classList.add('active');
+}
+
+// --- Validation and Upload ---
+function validateAndUpload(input) {
+    if (input.files && input.files[0]) {
+        // Size validation
+        if (input.files[0].size > 15 * 1024 * 1024) {
+            document.getElementById('sizeErrorModal').classList.add('active');
+            input.value = ""; // Clear the input
+            return; 
+        }
+        // If valid, submit form
+        document.getElementById('uploadForm').submit();
+    }
+}
+</script>
+ {% include "components/footer.html" %}
+</body>
+</html>

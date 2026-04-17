@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Communication Hub | KaresaBari Admin</title>
+
+  <link rel="stylesheet" href="../../css/messages.css">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+</head>
+<body>
+
+{% include 'components/sidebar.html' %}
+
+<main class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title-section">
+      <p class="subtitle">System Communication</p>
+      <h1>Communication Hub</h1>
+    </div>
+
+    <div class="stat-card">
+      <p>Total Inquiries</p>
+      <h2>{{ messages|length }}</h2>
+    </div>
+  </div>
+
+  <!-- MODERN FILTERS -->
+  <nav class="filters">
+    <a href="/admin/messages?filter=all" class="{{ 'active' if filter == 'all' or not filter else '' }}">All Inbox</a>
+    <a href="/admin/messages?filter=unread" class="{{ 'active' if filter == 'unread' else '' }}">Unread</a>
+    <a href="/admin/messages?filter=read" class="{{ 'active' if filter == 'read' else '' }}">Read & Replied</a>
+  </nav>
+
+  <!-- MESSAGES TABLE -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>User Info</th>
+          <th>Current Status</th>
+          <th>Received On</th>
+          <th style="text-align: right;">Management</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for msg in messages %}
+        <tr class="{{ 'unread' if not msg.is_read else '' }}">
+          <!-- User Details -->
+          <td>
+            <div class="user-meta">
+              <span class="user-name">{{ msg.full_name }}</span>
+              <span class="user-email">{{ msg.email }}</span>
+            </div>
+          </td>
+
+          <!-- Status Badge -->
+          <td>
+            {% if not msg.is_read %}
+              <span class="status new">● New</span>
+            {% elif msg.is_replied %}
+              <span class="status replied">✓ Replied</span>
+            {% else %}
+              <span class="status read">Viewed</span>
+            {% endif %}
+          </td>
+
+          <!-- Timestamp -->
+          <td>
+            <div style="display: flex; align-items: center; gap: 5px; color: #94a3b8; font-size: 13px;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">calendar_today</span>
+                {{ msg.created_at.strftime("%d %b, %Y") }}
+            </div>
+          </td>
+
+          <!-- Actions -->
+          <td style="text-align: right;">
+            <a href="/admin/message/{{ msg.id }}" class="view-btn">
+              <span class="material-symbols-outlined">visibility</span>
+              View & Reply
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+
+        {% if messages|length == 0 %}
+        <tr>
+          <td colspan="4" class="empty-state">
+            <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: 10px; display: block;">inbox</span>
+            No messages found in this category.
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+</body>
+</html>

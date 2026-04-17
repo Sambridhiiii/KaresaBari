@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaresaBari</title>
+    
+    <!-- Link your CSS -->
+    <link rel="stylesheet" href="../../css/main.css">
+</head>
+<body>
+
+<header class="main-header">
+  <div class="header-container">
+
+    <!-- Logo -->
+    <div class="logo-section">
+        <img src="../../public/images/mainlogo.png" alt="Logo" class="logo-icon">
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-menu">
+        <a href="/mygarden">My Garden</a>
+        <a href="/soilanalysis">Soil Analysis</a>
+        <a href="/recommendation">Recommendation</a>
+        <a href="/disease">Disease Detection</a>
+        <a href="/tools">Tools</a>
+        <a href="/aboutus">About Us</a>
+    </nav>
+
+    <!-- Right section -->
+    <div class="header-right">
+
+         <!-- Profile -->
+        <div class="profile-section">
+            <a href="/profile">
+                <img src="../../public/images/profile1.png" class="profile-img" alt="Profile">
+            </a>
+        </div>
+
+        <!-- Notification -->
+        <div class="notification-wrapper">
+            <img src="/public/images/notification .png" class="icon notification-icon">
+            <span class="badge" id="notificationBadge"></span>
+
+            <!-- Popup Dropdown (overlay, hidden by default) -->
+            <div class="notification-dropdown" id="notificationBox">
+                <div class="dropdown-header">
+                    <h4>Notifications</h4>
+                    <span class="mark-read" onclick="markAllRead()">Mark all as read</span>
+                </div>
+
+                <div class="notification-item unread">
+                    <h5>🌧️ Rain Expected</h5>
+                    <p>Light rain expected tomorrow.</p>
+                    <span class="time">2 hours ago</span>
+                </div>
+
+                <div class="notification-item">
+                    <h5>🦠 Disease Alert</h5>
+                    <p>Leaf disease detected in your crop.</p>
+                    <span class="time">2 days ago</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout -->
+        <div class="notification">
+            <a href="/logout">
+                <img src="../../public/images/logout1.png" class="icon">
+            </a>
+        </div>
+
+    </div>
+  </div>
+</header>
+
+<script>
+async function loadNotifications() {
+    const res = await fetch('/notifications');
+    const notifications = await res.json();
+
+    const box = document.getElementById('notificationBox');
+
+    box.innerHTML = `
+        <div class="dropdown-header">
+            <h4>Notifications</h4>
+            <span class="mark-read" onclick="markAllRead()">Mark all as read</span>
+        </div>
+    `;
+
+    for (let n of notifications) {
+        const item = document.createElement('div');
+        item.className = 'notification-item ' + (n.is_read ? '' : 'unread');
+
+        item.innerHTML = `
+            <h5>${n.title}</h5>
+            <p>${n.message}</p>
+            <span class="time">${n.created_at}</span>
+        `;
+
+        // Mark as read when clicked
+        item.onclick = async () => {
+            if (!n.is_read) {
+                await fetch(`/notifications/mark-read/${n.id}`, { method: 'POST' });
+                item.classList.remove('unread');
+                loadNotifications(); // refresh badge
+            }
+        };
+
+        box.appendChild(item);
+    }
+
+    // Badge update
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+    const badge = document.getElementById("notificationBadge");
+
+    badge.textContent = unreadCount;
+    badge.style.display = unreadCount > 0 ? "inline-block" : "none";
+}
+
+
+// Mark all read
+async function markAllRead() {
+    const res = await fetch('/notifications');
+    const notifications = await res.json();
+
+    for (let n of notifications) {
+        if (!n.is_read) {
+            await fetch(`/notifications/mark-read/${n.id}`, { method: 'POST' });
+        }
+    }
+
+    loadNotifications();
+}
+
+
+// Initial load
+window.onload = async function () {
+    loadNotifications();
+};
+document.addEventListener("DOMContentLoaded", () => {
+    const wrapper = document.querySelector(".notification-wrapper");
+    const box = document.getElementById("notificationBox");
+
+    let isOpen = false;
+
+    document.querySelector(".notification-wrapper").addEventListener("click", function (e) {
+        e.stopPropagation();
+
+        const box = document.getElementById("notificationBox");
+
+        isOpen = !isOpen;
+        box.style.display = isOpen ? "block" : "none";
+
+        if (isOpen) {
+            loadNotifications();
+        }
+    });
+
+    // Close when clicking outside
+    document.addEventListener("click", function () {
+        const box = document.getElementById("notificationBox");
+        box.style.display = "none";
+        isOpen = false;
+    });
+});
+setInterval(loadNotifications, 10000); // auto-refresh every 10s
+</script>
+
+
+</body>
+</html>

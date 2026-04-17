@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gardening Tools Advice - KaresaBari</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/tools.css">
+</head>
+<body>
+{% include "components/header.html" %}
+
+<main class="container">
+    <!-- HEADER -->
+    <div class="header-section">
+        <h1>Gardening <span class="highlight">Tools</span> Advice</h1>
+    </div>
+
+    <!-- CARDS GRID -->
+   <div class="cards-grid">
+        {% for tool in tools %}
+        <div class="tool-card">
+            <!-- Product Image -->
+            <div class="card-image">
+                <img src="/uploads/{{ tool.image }}" alt="{{ tool.name }}">
+            </div>
+
+            <!-- Card Content -->
+            <div class="card-content">
+                <!-- Product Name -->
+                <h3 class="tool-name">{{ tool.name }}</h3>
+
+                <!-- Store and Location -->
+                <p class="store-name"><strong>Store:</strong> {{ tool.store_name }}</p>
+                <p class="location">
+                    <strong>Location:</strong> 
+                    <a href="https://www.google.com/maps/search/{{ tool.location | urlencode }}" target="_blank" class="location-link">
+                        {{ tool.location }}
+                    </a>
+                </p>
+
+                <!-- Description Box -->
+                <div class="description-box">
+                    <p>{{ tool.description }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- TOOL CARE GUIDE -->
+    <div class="care-guide">
+        <h2>🛠️ Tool Care Guide</h2>
+        <ul>
+            <li>Always clean your tools after use to prevent rust and disease.</li>
+            <li>Sharpen blades and edges regularly for efficient cutting.</li>
+            <li>Store in a dry place to extend tool lifespan.</li>
+            <li>Lubricate moving parts of pruning shears or sprayers monthly.</li>
+            <li>Inspect for damage before every use to ensure safety.</li>
+        </ul>
+    </div>
+</main>
+{% include "components/footer.html" %}
+</body>
+</html>

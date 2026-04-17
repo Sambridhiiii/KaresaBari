@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Tool - KaresaBari</title>
+  <link rel="stylesheet" href="../../css/edit_tool.css">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+</head>
+
+<body>
+
+<main class="main-content">
+
+  <!-- Header with Back Button -->
+  <div class="header-flex">
+    <a href="/admin/toolsmanagement" class="btn-back">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Back to Inventory
+    </a>
+    <h2>Edit Tool</h2>
+  </div>
+
+  <div class="form-container">
+    <form id="editForm" action="/admin/edit-tool/{{ tool.id }}" method="POST" enctype="multipart/form-data">
+
+      <div class="form-group">
+        <label>Tool Name</label>
+        <input type="text" name="name" value="{{ tool.name }}" required>
+      </div>
+
+      <div class="form-group">
+        <label>Store Name</label>
+        <input type="text" name="store_name" value="{{ tool.store_name }}" required>
+      </div>
+
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" name="location" value="{{ tool.location }}" required>
+      </div>
+
+      <div class="form-group">
+        <label>Description (Max 75 Words)</label>
+        <textarea name="description" id="descriptionInput" required placeholder="Describe the tool...">{{ tool.description }}</textarea>
+        <p id="wordCountLabel" style="font-size: 0.75rem; color: #4be277; margin-top: 5px; font-weight: 600;">
+            Word Count: <span id="currentCount">0</span> / 75
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label>Update Image (Max 15MB)</label>
+        <label class="custom-file-upload">
+            <input type="file" name="image" id="imageInput" accept="image/*">
+            <span class="material-symbols-outlined">image</span> Choose New Photo
+        </label>
+        <small style="display:block; color: #b9c7e0; margin-top: 5px;">Leave empty to keep current image</small>
+        
+        <div class="preview-section">
+            <p style="font-size: 0.7rem; color: #6bff8f; margin-top: 10px;">PREVIEW:</p>
+            <img id="preview" src="/uploads/{{ tool.image }}" width="150">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-update">
+            <span class="material-symbols-outlined">save</span>
+            Update Tool
+        </button>
+      </div>
+
+    </form>
+  </div>
+</main>
+
+<!-- ================= MODAL FOR ERRORS & CONFIRMATION ================= -->
+<div id="customAlertModal" class="custom-modal-overlay">
+    <div class="custom-modal">
+        <h3 id="alertTitle">Notice</h3>
+        <p id="alertMessage"></p>
+        <div class="modal-actions" id="modalActions">
+            <!-- Buttons dynamically injected by JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+  const imageInput = document.getElementById('imageInput');
+  const preview = document.getElementById('preview');
+  const editForm = document.getElementById('editForm');
+  const descInput = document.getElementById('descriptionInput');
+  const currentCountSpan = document.getElementById('currentCount');
+  const wordCountLabel = document.getElementById('wordCountLabel');
+  const alertModal = document.getElementById('customAlertModal');
+  const modalActions = document.getElementById('modalActions');
+
+  // --- Helper: Show Alert Popup ---
+  function showModal(title, message, isConfirmation = false) {
+    document.getElementById('alertTitle').innerText = title;
+    document.getElementById('alertMessage').innerText = message;
+    
+    // Clear old buttons
+    modalActions.innerHTML = '';
+
+    if (isConfirmation) {
+        // Show Confirm and Cancel buttons
+        const confirmBtn = document.createElement('button');
+        confirmBtn.innerText = "Yes, Update";
+        confirmBtn.className = "modal-btn btn-confirm";
+        confirmBtn.onclick = () => { editForm.submit(); };
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.innerText = "Cancel";
+        cancelBtn.className = "modal-btn btn-cancel";
+        cancelBtn.onclick = closeModal;
+
+        modalActions.appendChild(confirmBtn);
+        modalActions.appendChild(cancelBtn);
+    } else {
+        // Show simple OK button for errors
+        const okBtn = document.createElement('button');
+        okBtn.innerText = "OK";
+        okBtn.className = "modal-btn btn-confirm";
+        okBtn.onclick = closeModal;
+        modalActions.appendChild(okBtn);
+    }
+
+    alertModal.style.display = 'flex';
+  }
+
+  function closeModal() {
+    alertModal.style.display = 'none';
+  }
+
+  // --- Word Count Logic ---
+  function updateWordCount() {
+    const text = descInput.value.trim();
+    const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
+    currentCountSpan.innerText = words;
+    wordCountLabel.style.color = (words > 75) ? "#ff6b6b" : "#4be277";
+  }
+
+  descInput.addEventListener('input', updateWordCount);
+  window.addEventListener('load', updateWordCount);
+
+  // --- Image Preview ---
+  imageInput.addEventListener('change', () => {
+    const file = imageInput.files[0];
+    if (file) { preview.src = URL.createObjectURL(file); }
+  });
+
+  // --- Form Submission Logic ---
+  editForm.addEventListener('submit', function(e) {
+    e.preventDefault(); // Stop form to run checks
+
+    const text = descInput.value.trim();
+    const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
+    const file = imageInput.files[0];
+
+    // 1. Validation: Word Count
+    if (words > 75) {
+      showModal("Limit Exceeded", `Your description is ${words} words. Please shorten it to 75 words or less.`);
+      return;
+    }
+
+    // 2. Validation: File Size
+    if (file && file.size > 15 * 1024 * 1024) {
+      showModal("File Too Large", "The image exceeds 15MB. Please choose a smaller file.");
+      return;
+    }
+
+    // 3. Confirmation: If everything is okay
+    showModal("Confirm Update", "Are you sure you want to save these changes to the tool?", true);
+  });
+</script>
+
+</body>
+</html>

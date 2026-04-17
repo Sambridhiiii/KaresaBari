@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaresaBari - About Us</title>
+
+    <link rel="stylesheet" href="/css/aboutus.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+</head>
+<body>
+{% include "components/header.html" %}
+<main class="container">
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+    <!-- Hero Image -->
+    <div class="hero-image-wrapper">
+        <img src="../public/images/vegetable.jpg" alt="Agriculture Landscape" class="hero-img">
+        <div class="hero-overlay"></div>
+    </div>
+
+    <!-- Hero Text Content -->
+    <div class="hero-content">
+        <h1>“Grow Fresh, Grow Healthy”</h1>
+        <p>KaresaBari empowers home gardeners with simple, AI-guided solutions to cultivate fresh, nutritious produce right in your own kitchen garden.</p>
+    </div>
+</section>
+
+    <!-- STORY SECTION -->
+    <section class="story">
+        <div class="story-left">
+            <h2>Our Story & Mission</h2>
+            <p>KaresaBari is a smart vegetable gardening assistant designed for households and small-scale farmers in Nepal. Using AI, it can detect soil type from a simple photo and provide personalized guidance on which vegetables to grow based on soil, season, sunlight, and location. The platform also offers features like leaf disease detection, organic fertilizer recommendations, watering tips, and gardening tool suggestions.</p>
+            <p>Traditionally, kitchen gardening in Nepal relies on experience and trial-and-error, often resulting in poor crop selection and low productivity. KaresaBari makes gardening easy, reliable, and beginner-friendly, helping users grow healthy vegetables at home while saving time and maximizing yield.</p>
+
+            <div class="values">
+                <div class="value-card">
+                    <img src="../public/images/growth.png" class="value-card">
+                    <h4>Precision</h4>
+                    <p>Data-driven accuracy for every leaf and seed.</p>
+                </div>
+                <div class="value-card">
+                    <img src="../public/images/greenleaf.png" class="value-card">
+                    <h4>Sustainability</h4>
+                    <p>Eco-conscious practices for future generations.</p>
+                </div>
+                <div class="value-card">
+                    <img src="../public/images/community.png" class="value-card">
+                    <h4>Community</h4>
+                    <p>Supporting thousands of local families.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="story-right">
+            <h3> Our Growing Impact</h3>
+            <div class="impact">
+                <div class="impact-item">
+                    <div class="impact-icon">
+                       <img src="../public/images/progress.png" class="profile-img">  
+                    </div>
+                    <div>
+                        <h4>15k+</h4>
+                        <p>Kitchen gardener</p>
+                    </div>
+                </div>
+
+                <div class="impact-item">
+                    <div class="impact-icon">
+                        <img src="../public/images/qrscan.png" class="profile-img">
+                    </div>
+                    <div>
+                        <h4>50k+</h4>
+                        <p>Scans Performed</p>
+                    </div>
+                </div>
+
+                <div class="impact-item">
+                    <div class="impact-icon">
+                        <img src="../public/images/success.png" class="profile-img">
+                    </div>
+                    <div>
+                        <h4>98%</h4>
+                        <p>AI Accuracy Rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOUNDER SECTION -->
+    <section class="founder">
+        <div class="founder-image">
+            <img src="../public/images/image.png" alt="Founder Sambridhi Shrestha">
+        </div>
+
+        <div class="founder-text">
+            <span class="tag">The Visionary</span>
+            <h3>Sambridhi Shrestha</h3>
+            <p class="quote">
+                "Empowering households and small-scale farmers to grow fresh, healthy vegetables with the help of AI-driven guidance and practical gardening solutions."
+            </p>
+            <div class="founder-role">
+                <p><strong>Founder & Chief Visionary Officer</strong></p>
+                <p>Formerly Lead Agri-Tech Researcher, passionate about sustainable and smart kitchen gardening in Nepal</p>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="contact-inline">
+        <h3>Need help?</h3>
+        <p>
+            Feel free to contact us →
+            <a href="/contactus" class="contact-link">Contact Us</a>
+        </p>
+    </section>
+
+</main>
+{% include "components/footer.html" %}
+</body>
+</html>

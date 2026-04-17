@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KaresaBari | Message Detail</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <!-- Ensure path to CSS is correct -->
+  <link rel="stylesheet" href="../../css/message_detail.css">
+</head>
+<body>
+
+{% include 'components/sidebar.html' %}
+
+<main class="container">
+  <div class="message-wrapper">
+    
+    <div class="message-card">
+      <!-- HEADER -->
+      <div class="card-header">
+        <div class="header-top">
+          <div class="user-info">
+            <h2>{{ message.full_name }}</h2>
+            <span class="email-tag">{{ message.email }}</span>
+          </div>
+          <div class="status">
+            {% if message.is_replied %}
+              <span class="status-badge replied">Replied</span>
+            {% else %}
+              <span class="status-badge pending">Pending</span>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="received-at">
+          <span class="material-symbols-outlined" style="font-size: 18px;">history</span>
+          Received on {{ message.created_at.strftime("%d %b, %Y • %I:%M %p") }}
+        </div>
+      </div>
+
+      <!-- MESSAGE CONTENT -->
+      <div class="card-content">
+        <span class="content-label">User Inquiry</span>
+        <div class="message-text">
+          {{ message.message }}
+        </div>
+      </div>
+
+      <div class="reply-area">
+        {% if not message.is_replied %}
+          <span class="content-label" style="color: var(--text-muted);">Compose Response</span>
+          
+          <form action="/reply/{{ message.id }}" method="POST" class="reply-form" id="replyForm">
+            <textarea name="reply" id="replyTextarea" placeholder="Write your professional response here..." required></textarea>
+            
+            <!-- Word Counter Display -->
+            <div class="word-counter">
+              <span id="currentWordCount">0</span> / 250 words
+            </div>
+
+            <button type="submit" class="reply-btn">
+              <span class="material-symbols-outlined">send</span>
+              Send Response
+            </button>
+          </form>
+        {% else %}
+          <!-- ... replied box ... -->
+        {% endif %}
+      </div>
+
+      <!-- PROFESSIONAL POPUP MODAL -->
+      <div id="wordLimitModal" class="modal-overlay">
+        <div class="modal-card">
+          <div class="modal-icon">
+            <span class="material-symbols-outlined">warning</span>
+          </div>
+          <h2>Message Too Long</h2>
+          <p>Your response exceeds the professional limit of <strong>250 words</strong>. Please condense your message before sending.</p>
+          <button onclick="closeModal()" class="modal-close-btn">I'll fix it</button>
+        </div>
+      </div>
+      <!-- SUCCESS POPUP MODAL -->
+      <div id="successModal" class="modal-overlay">
+        <div class="modal-card success-card">
+          <div class="modal-icon success-icon">
+            <span class="material-symbols-outlined">check_circle</span>
+          </div>
+          <h2>Response Sent!</h2>
+          <p>Your professional response has been successfully delivered to <strong>{{ message.full_name }}</strong>.</p>
+          <button onclick="closeSuccessModal()" class="modal-close-btn">Great!</button>
+        </div>
+      </div>
+
+<!-- JAVASCRIPT LOGIC -->
+<script>
+  const textarea = document.getElementById('replyTextarea');
+  const counter = document.getElementById('currentWordCount');
+  const form = document.getElementById('replyForm');
+  const modal = document.getElementById('wordLimitModal');
+
+  function getWordCount(str) {
+    // Splits by spaces and filters out empty strings
+    return str.trim().split(/\s+/).filter(word => word.length > 0).length;
+  }
+
+  // Update counter in real-time
+  textarea.addEventListener('input', () => {
+    const count = getWordCount(textarea.value);
+    counter.innerText = count;
+    
+    // Change color to red if limit reached
+    if (count > 250) {
+      counter.style.color = "#ff4d4d";
+    } else {
+      counter.style.color = "var(--primary)";
+    }
+  });
+
+  // Check on Submit
+  form.addEventListener('submit', (e) => {
+    const count = getWordCount(textarea.value);
+    if (count > 250) {
+      e.preventDefault(); // Stop form from sending
+      showModal();
+    }
+  });
+
+  function showModal() {
+    modal.classList.add('active');
+  }
+
+  function closeModal() {
+    modal.classList.remove('active');
+  }
+</script>
+<script>
+  // ... existing word count script ...
+
+  // NEW: SUCCESS MODAL LOGIC
+  const successModal = document.getElementById('successModal');
+
+  // Check URL parameters when page loads
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('status') === 'sent') {
+      showSuccessModal();
+    }
+  });
+
+  function showSuccessModal() {
+    successModal.classList.add('active');
+  }
+
+  function closeSuccessModal() {
+    successModal.classList.remove('active');
+    // Optional: Clean the URL so the popup doesn't appear again on refresh
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+</script>
+</main>
+</body>
+</html>

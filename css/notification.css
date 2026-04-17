@@ -1,0 +1,375 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BODY */
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0b1326;
+  color: #dae2fd;
+}
+
+/* MAIN */
+.main {
+  margin-left: 260px;
+  padding: 40px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* HEADER */
+.header h2 {
+  font-size: 40px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+}
+
+.header p {
+  margin-top: 8px;
+  color: #abb9d2;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+/* CARD */
+.card {
+  background: #222a3d;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+/* CARD HEADER */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.icon-box {
+  background: rgba(75, 226, 119, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  color: #4be277;
+}
+
+/* FORM */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-size: 12px;
+  color: #abb9d2;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  background: #2d3449;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  color: white;
+}
+
+/* FOOTER */
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.schedule {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #bccbb9;
+}
+
+/* BUTTON */
+.btn {
+  background: linear-gradient(135deg, #4be277, #22c55e);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* INSIGHT */
+.insight {
+  margin-top: 20px;
+  background: rgba(75, 226, 119, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #4be277;
+  border-radius: 50%;
+  margin-top: 5px;
+}
+
+/* HISTORY */
+.history {
+  background: #131b2e;
+  border-radius: 12px;
+  overflow: hidden;
+
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* SCROLLBAR */
+.history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history::-webkit-scrollbar-thumb {
+  background: #4be277;
+  border-radius: 10px;
+}
+
+/* HEADER */
+.history-header {
+  padding: 20px;
+  border-bottom: 1px solid #3d4a3d;
+}
+
+/* ITEM */
+.item {
+  padding: 20px;
+  border-bottom: 1px solid #3d4a3d;
+}
+
+.item:hover {
+  background: #2d3449;
+}
+
+/* TOP */
+.item-top {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tag {
+  font-size: 10px;
+  background: #2d3449;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.tag.red {
+  background: #93000a;
+  color: #ffb4ab;
+}
+
+/* TEXT */
+.item p {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #bccbb9;
+}
+
+/* BOTTOM */
+.item-bottom {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  align-items: center;
+}
+
+/* BUTTONS */
+.resend-btn, .delete-btn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.resend-btn {
+  background: #4be277;
+  color: #0b1326;
+}
+
+.delete-btn {
+  background: #ff4d4f;
+  color: white;
+}
+
+/* BACKGROUND */
+.bg-decor {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+.circle1 {
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: rgba(75, 226, 119, 0.05);
+  filter: blur(120px);
+  border-radius: 50%;
+}
+
+.circle2 {
+  position: absolute;
+  bottom: -10%;
+  left: 20%;
+  width: 400px;
+  height: 400px;
+  background: rgba(16, 185, 129, 0.05);
+  filter: blur(100px);
+  border-radius: 50%;
+}
+
+/* POPUP */
+/* POPUP OVERLAY */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 19, 38, 0.75);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+
+  animation: fadeIn 0.2s ease;
+}
+
+/* POPUP BOX */
+.popup-box {
+  background: #1c2333;
+  padding: 30px 28px;
+  border-radius: 16px;
+  width: 360px;
+  max-width: 90%;
+  text-align: center;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: scaleIn 0.2s ease;
+}
+
+/* TITLE */
+.popup-box h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* MESSAGE */
+.popup-box p {
+  font-size: 14px;
+  color: #bccbb9;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+/* ACTION BUTTONS */
+.popup-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* CANCEL */
+.cancel-btn {
+  flex: 1;
+  background: #2d3449;
+  color: #dae2fd;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #3a425a;
+}
+
+/* CONFIRM */
+.confirm-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #4be277, #22c55e);
+  color: #0b1326;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(75, 226, 119, 0.4);
+}
+/* Add to notification.css */
+
+/* Center the OK button for the Word Limit Alert */
+#temp-ok-btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Ensure history item bottom is clean */
+.item-bottom {
+  display: flex;
+  justify-content: flex-end; /* Align delete button to right */
+  padding-top: 10px;
+}
+
+/* Red text for counter when limit reached */
+#word-counter {
+    transition: color 0.3s ease;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

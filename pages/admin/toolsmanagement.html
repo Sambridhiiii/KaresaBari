@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tools Management - KaresaBari</title>
+
+  <link rel="stylesheet" href="../../css/toolsmanagement.css">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+</head>
+
+<body>
+{% include 'components/sidebar.html' %}
+
+<main class="main-content">
+
+  <!-- ================= REGISTER TOOL ================= -->
+  <section class="section register-tool">
+    <div class="section-header">
+      <h2>Register Equipment</h2>
+      <p>Add new gardening tools to the system.</p>
+    </div>
+
+    <div class="grid-container">
+
+      <!-- FORM -->
+      <div class="form-container">
+        <form id="toolForm" action="/admin/add-tool" method="POST" enctype="multipart/form-data">
+
+          <div class="form-group">
+            <label>Tool Name</label>
+            <input type="text" name="name" required>
+          </div>
+
+          <div class="form-group">
+            <label>Store Name</label>
+            <input type="text" name="store_name" required>
+          </div>
+
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" name="location" required>
+          </div>
+
+          <div class="form-group">
+            <label>Description (Max 75 Words)</label>
+            <textarea name="description" id="descriptionInput" placeholder="Describe the tool..." required style="min-height: 120px;"></textarea>
+            <!-- Real-time word counter -->
+            <p id="wordCountLabel" style="font-size: 0.75rem; color: #4be277; margin-top: 5px; font-weight: 600;">
+                Word Count: <span id="currentCount">0</span> / 75
+            </p>
+          </div>
+
+          <!-- Hidden file input -->
+          <input type="file" id="hiddenFileInput" name="image" style="display:none;" accept="image/*">
+
+          <div class="form-actions">
+            <button type="submit" id="submitBtn">
+              <span class="material-symbols-outlined">add</span>
+              Add Tool
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- RIGHT SIDE UPLOAD -->
+      <div class="image-upload-container">
+        <div class="upload-box" id="dropZone" onclick="document.getElementById('hiddenFileInput').click()">
+          <div class="upload-icon">
+            <span class="material-symbols-outlined">upload_file</span>
+          </div>
+          <h3>Upload Tool Image</h3>
+          <p>Click to select image (Max 15MB)</p>
+          
+          <!-- Image Preview -->
+          <img id="previewImage" style="display:none; margin-top:10px; width:100%; border-radius:10px; border: 2px solid #4be277;">
+        </div>
+
+        <div class="ai-prediction">
+          <div class="ai-info">
+            <h3>Smart Upload</h3>
+            <p>Upload high-quality images for better management and visualization.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TOOL TABLE ================= -->
+  <section class="section inventory-table">
+    <div class="section-header">
+      <h2>Tool Inventory</h2>
+      <p class="inventory-description">Manage all registered tools.</p>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Description</th>
+            <th>Store</th>
+            <th>Location</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tool in tools %}
+          <tr>
+            <td class="tool-details">
+              <div class="tool-info">
+                <img src="/uploads/{{ tool.image }}" alt="tool">
+                <div><strong>{{ tool.name }}</strong></div>
+              </div>
+            </td>
+            <td class="tool-description">{{ tool.description }}</td>
+            <td>{{ tool.store_name }}</td>
+            <td>{{ tool.location }}</td>
+            <td class="action-buttons">
+              <a href="/admin/edit-tool/{{ tool.id }}" class="btn-edit">✏️ Edit</a>
+              <form action="/admin/delete-tool/{{ tool.id }}" method="POST" class="delete-form">
+                <button type="submit" class="btn-delete">🗑️ Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- ================= MODAL HTML (REUSABLE POPUP) ================= -->
+<div id="customAlertModal" class="upload-modal" style="display: none;">
+    <h3 id="alertTitle" style="color: #ff6b6b;">Limit Exceeded</h3>
+    <p id="alertMessage">Your description is too long.</p>
+    <div class="modal-actions">
+        <button class="modal-confirm" onclick="closeAlert()" style="background: #4be277; color: #000; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold;">OK</button>
+    </div>
+</div>
+
+<script>
+  const fileInput = document.getElementById("hiddenFileInput");
+  const preview = document.getElementById("previewImage");
+  const toolForm = document.getElementById("toolForm");
+  const descInput = document.getElementById("descriptionInput");
+  const currentCountSpan = document.getElementById("currentCount");
+  const wordCountLabel = document.getElementById("wordCountLabel");
+  const alertModal = document.getElementById("customAlertModal");
+
+  // Show the Popup
+  function showAlert(title, message) {
+    document.getElementById("alertTitle").innerText = title;
+    document.getElementById("alertMessage").innerText = message;
+    alertModal.style.display = "block";
+  }
+
+  // Close the Popup
+  function closeAlert() {
+    alertModal.style.display = "none";
+  }
+
+  // 1. LIVE WORD COUNTER LOGIC
+  descInput.addEventListener("input", function() {
+    // Split by spaces and filter out empty items to get accurate word count
+    const words = this.value.trim().split(/\s+/).filter(word => word.length > 0);
+    const count = words.length;
+    currentCountSpan.innerText = count;
+
+    if (count > 75) {
+        wordCountLabel.style.color = "#ff6b6b"; // Turns Red if limit exceeded
+    } else {
+        wordCountLabel.style.color = "#4be277"; // Green if safe
+    }
+  });
+
+  // 2. IMAGE PREVIEW
+  fileInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (file) {
+      preview.style.display = "block";
+      preview.src = URL.createObjectURL(file);
+    }
+  });
+
+  // 3. FORM VALIDATION (The "Go" Block)
+  toolForm.addEventListener("submit", function (e) {
+    const file = fileInput.files[0];
+    const words = descInput.value.trim().split(/\s+/).filter(word => word.length > 0);
+    const wordCount = words.length;
+
+    // A. Check if image is uploaded
+    if (!file) {
+        e.preventDefault();
+        showAlert("Missing File", "Please upload a tool image.");
+        return;
+    }
+
+    // B. Check Image Size (15MB Limit)
+    const maxSizeBytes = 15 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+        e.preventDefault();
+        showAlert("File Too Large", "The image size exceeds 15MB. Please upload a smaller photo.");
+        return;
+    }
+
+    // C. Check Word Count (MAX 75 Limit)
+    if (wordCount > 75) {
+        e.preventDefault(); // This stops the form from submitting ("going")
+        showAlert("Limit Exceeded", `Your description is ${wordCount} words. Please shorten it to 75 words or less.`);
+        return;
+    }
+  });
+
+  // 4. DELETE CONFIRMATION
+  document.querySelectorAll(".delete-form").forEach(form => {
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        if (confirm("Are you sure you want to delete this tool?")) {
+            const row = this.closest("tr");
+            fetch(this.getAttribute("action"), {
+                method: "POST",
+                body: new FormData(this)
+            }).then(res => {
+                if (res.ok) row.remove();
+                else alert("Error deleting tool.");
+            });
+        }
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaresaBari - Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/profile.css">
+    <style>
+        /* --- PROPER POPUP UI (TOASTS) --- */
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            min-width: 300px; padding: 16px 20px; border-radius: 12px;
+            color: white; font-weight: 600; display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            animation: slideIn 0.4s ease forwards;
+        }
+        .toast.success { background: #10b981; border-left: 6px solid #065f46; }
+        .toast.error { background: #ef4444; border-left: 6px solid #991b1b; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast.hide { animation: slideOut 0.4s ease forwards; }
+        @keyframes slideOut {
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+{% include "components/header.html" %}
+
+<!-- Toast Container for Popups -->
+<div class="toast-container" id="toastContainer"></div>
+
+<main class="profile-page">
+    <div class="profile-container">
+        <div class="profile-card">
+            
+            <!-- LEFT SIDEBAR -->
+            <aside class="sidebar">
+                <form id="avatarForm" action="/profile/update" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="full_name" value="{{ user.full_name }}">
+                    <div class="profile-pic-section">
+                        <!-- Automatically submit form when image is picked -->
+                        <input type="file" id="fileInput" name="profile_image" style="display: none;" onchange="submitAvatar()">
+                    </div>
+                </form>
+
+                <h2 class="user-title">{{ user.full_name }}</h2>
+                <p class="user-subtitle">Green Member</p>
+
+                <div class="stats-stack">
+                    <div class="stat-pill">
+                        <span class="material-symbols-outlined icon-green">eco</span>
+                        <div class="stat-info">
+                            <span class="stat-label">Garden Status</span>
+                            <span class="stat-value">{{ garden_status }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="material-symbols-outlined icon-green">calendar_today</span>
+                        <div class="stat-info">
+                            <span class="stat-label">Member Since</span>
+                            <span class="stat-value">{{ member_since }}</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- RIGHT CONTENT -->
+            <section class="content-area">
+                <div class="section-header">
+                    <h1>Update Profile</h1>
+                    <p>Manage your garden identity and account security.</p>
+                </div>
+
+                <form class="profile-form" method="POST" action="/profile/update">
+                    <div class="input-grid">
+                        <div class="form-control">
+                            <label>Full Name</label>
+                            <div class="input-icon-group">
+                                <span class="material-symbols-outlined">person</span>
+                                <input type="text" name="full_name" value="{{ user.full_name }}" required>
+                            </div>
+                        </div>
+                        <div class="form-control">
+                            <label>Email Address</label>
+                            <div class="input-icon-group">
+                                <span class="material-symbols-outlined">mail</span>
+                                <input type="email" value="{{ user.email }}" readonly style="background: #f8fafc; color: #64748b;">
+                            </div>
+                        </div>
+                        <div class="form-control">
+                            <label>New Password</label>
+                            <div class="input-icon-group">
+                                <span class="material-symbols-outlined">lock</span>
+                                <input type="password" name="new_password" placeholder="Create new password">
+                            </div>
+                        </div>
+                        <div class="form-control">
+                            <label>Confirm Password</label>
+                            <div class="input-icon-group">
+                                <span class="material-symbols-outlined">lock_reset</span>
+                                <input type="password" name="confirm_password" placeholder="Confirm your new password">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-row">
+                        <button type="submit" class="primary-btn">Save Changes</button>
+                    </div>
+                </form>
+
+                <!-- IMPACT SECTION (Dynamic) -->
+                <div class="impact-container">
+                    <h3 class="impact-title">
+                        <span class="material-symbols-outlined icon-green">military_tech</span>
+                        Garden Impact
+                    </h3>
+                    <div class="impact-cards-grid">
+                        <div class="impact-card-item">
+                            <div class="icon-circle"><span class="material-symbols-outlined">grass</span></div>
+                            <div class="impact-val">{{ total_crops }}</div>
+                            <div class="impact-tag">Active Crops</div>
+                        </div>
+                        <div class="impact-card-item">
+                            <div class="icon-circle"><span class="material-symbols-outlined">compost</span></div>
+                            <div class="impact-val">{{ health_checks }}</div>
+                            <div class="impact-tag">Health Checks</div>
+                        </div>
+                        <div class="impact-card-item">
+                            <div class="icon-circle"><span class="material-symbols-outlined">psychology</span></div>
+                            <div class="impact-val">{{ soil_reports }}</div>
+                            <div class="impact-tag">Soil Reports</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<script>
+    // 1. SHOW TOAST POPUP BASED ON URL PARAMS
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icon = type === 'success' ? 'check_circle' : 'error';
+        toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span> ${message}`;
+        
+        container.appendChild(toast);
+
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+            toast.classList.add('hide');
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
+    // Check URL for status messages on load
+    window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('msg') === 'success') {
+            showToast('Profile updated successfully! ✨');
+        } else if (params.get('error') === 'mismatch') {
+            showToast('Passwords do not match! ❌', 'error');
+        }
+    };
+
+    // 2. AVATAR UPLOAD & PREVIEW
+    function submitAvatar() {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput.files && fileInput.files[0]) {
+            // Instant Preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('profilePreview').src = e.target.result;
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+            
+            // Submit form automatically
+            setTimeout(() => {
+                document.getElementById('avatarForm').submit();
+            }, 500);
+        }
+    }
+</script>
+
+</body>
+<!-- Place this right after <body> -->
+<!-- Toast Container -->
+<div id="toast-wrapper" class="toast-container"></div>
+
+<script>
+    function triggerToast(title, message, type) {
+        const wrapper = document.getElementById('toast-wrapper');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const icon = type === 'success' ? 'verified' : 'warning';
+        
+        toast.innerHTML = `
+            <span class="material-symbols-outlined">${icon}</span>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-msg">${message}</div>
+            </div>
+        `;
+        
+        wrapper.appendChild(toast);
+
+        // Remove after 4 seconds
+        setTimeout(() => {
+            toast.style.animation = 'toastFadeOut 0.5s forwards';
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
+    // Auto-detect URL parameters to show popups
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (urlParams.get('msg') === 'password_success') {
+            triggerToast('Update Successful', 'Your password has been changed successfully.', 'success');
+        } 
+        
+        if (urlParams.get('error') === 'password_mismatch') {
+            triggerToast('Change Failed', 'Passwords do not match. Please try again.', 'error');
+        }
+    });
+</script>
+{% include "components/footer.html" %}
+</html>

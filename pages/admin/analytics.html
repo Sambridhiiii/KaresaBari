@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KaresaBari | Command Center</title>
+    <!-- Use absolute paths starting with / for FastAPI static mounting -->
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/analytics.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+{% include 'components/sidebar.html' %}
+
+<div class="analytics-container">
+    <header class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1>Command Center</h1>
+            <p style="color: var(--text-dim); margin-top: 5px;">Monitoring {{ stats.total_interactions }} real-time system interactions.</p>
+        </div>
+        
+        <div class="health-badge">
+            <div class="health-dot"></div>
+            <span style="font-size: 13px; font-weight: 700;">AI Core: Live</span>
+        </div>
+    </header>
+
+    <!-- Top 4 Cards Row -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="icon-box"><span class="material-symbols-outlined">analytics</span></div>
+            <span class="label">Total System Load</span>
+            <div class="number">{{ stats.total_interactions }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-box"><span class="material-symbols-outlined">psychology</span></div>
+            <span class="label">AI Model Confidence</span>
+            <div class="number">{{ stats.ai_accuracy }}%</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-box"><span class="material-symbols-outlined">group</span></div>
+            <span class="label">Registered Gardeners</span>
+            <div class="number">{{ stats.total_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-box"><span class="material-symbols-outlined">potted_plant</span></div>
+            <span class="label">Active Crops Growing</span>
+            <div class="number">{{ stats.active_crops }}</div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Weekly Engagement Trend</h3>
+            <div class="chart-box"><canvas id="lineChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+            <h3>Feature Utilization Map</h3>
+            <div class="chart-box"><canvas id="pieChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Live System Stream -->
+    <div class="activity-card">
+        <div class="activity-header">
+            <h3>Live Activity Stream</h3>
+            <button onclick="window.print()" class="export-btn">Generate Report</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Module Source</th>
+                    <th>Node Identification</th>
+                    <th>Reliability</th>
+                    <th>Time Stamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scan in recent_soil %}
+                <tr>
+                    <td style="font-weight: 700;"><span class="material-symbols-outlined" style="color:var(--primary-neon); vertical-align: middle; margin-right: 8px;">science</span> Soil Analysis</td>
+                    <td>{{ scan.soil_type }}</td>
+                    <td>{{ scan.confidence }}%</td>
+                    <td>{{ scan.created_at.strftime('%I:%M %p') if scan.created_at else 'Recent' }}</td>
+                </tr>
+                {% endfor %}
+                
+                {% for scan in recent_disease %}
+                <tr>
+                    <td style="font-weight: 700;"><span class="material-symbols-outlined" style="color:#e74c3c; vertical-align: middle; margin-right: 8px;">coronavirus</span> Disease Scan</td>
+                    <td>{{ scan.name }}</td>
+                    <td>{{ scan.confidence }}%</td>
+                    <td>{{ scan.created_at.strftime('%I:%M %p') if scan.created_at else 'Recent' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 1. Data Ingestion from FastAPI (Safely parsed for JS)
+    const chartLabels = JSON.parse('{{ stats.chart_labels | tojson | safe }}');
+    const chartValues = JSON.parse('{{ stats.chart_data | tojson | safe }}');
+    const sCount = Number("{{ stats.soil_scans|default(0) }}");
+    const dCount = Number("{{ stats.disease_scans|default(0) }}");
+    const cCount = Number("{{ stats.active_crops|default(0) }}");
+
+    // 2. Line Chart Logic
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    const gradient = lineCtx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(46, 204, 113, 0.25)');
+    gradient.addColorStop(1, 'transparent');
+
+    new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                data: chartValues,
+                borderColor: '#2ecc71',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                backgroundColor: gradient,
+                pointRadius: 5,
+                pointBackgroundColor: '#2ecc71'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' }, beginAtZero: true },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+
+    // 3. Pie Chart Logic
+    new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Soil', 'Disease', 'Garden'],
+            datasets: [{
+                data: [sCount, dCount, cCount],
+                backgroundColor: ['#2ecc71', '#27ae60', '#1b5e3a'],
+                borderWidth: 0,
+                hoverOffset: 20
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '80%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 25, usePointStyle: true } }
+            }
+        }
+    });
+</script>
+</body>
+</html>

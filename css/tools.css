@@ -1,0 +1,210 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+body {
+    background: #f6faf6;
+    color: #1e293b;
+}
+
+/* MAIN CONTAINER */
+.container {
+    max-width: 1500px;
+    margin: auto;
+    padding: 2rem;
+}
+
+/* HEADER */
+.header-section {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.header-section h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+}
+
+.header-section .highlight {
+    color: #197c20;
+}
+
+/* CARDS GRID */
+/* CARDS GRID */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* exactly 4 cards per row */
+    gap: 2.5rem;
+}
+
+@media (max-width: 1200px) {
+    .cards-grid {
+        grid-template-columns: repeat(3, 1fr); /* 3 per row on medium screens */
+    }
+}
+
+@media (max-width: 900px) {
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 per row on small screens */
+    }
+}
+
+@media (max-width: 600px) {
+    .cards-grid {
+        grid-template-columns: 1fr; /* 1 per row on very small screens */
+    }
+}
+
+/* TOOL CARD */
+.tool-card {
+    background: #f7fcf7;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    min-height: 520px; /* uniform card height */
+}
+
+.tool-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 25px rgba(0,0,0,0.12);
+}
+
+/* CARD IMAGE */
+.card-image {
+    height: 250px;
+    overflow: hidden;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.tool-card:hover img {
+    transform: scale(1.05);
+}
+
+/* CARD CONTENT */
+.card-content {
+    padding: 20px;
+    border-radius: 0 0 16px 16px;
+    background-color: #f7fcf7;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+    gap: 10px;
+}
+
+/* TOOL NAME */
+.tool-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 25px;
+    font-weight: 700;
+    color: #134d2c;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+/* STORE NAME */
+.store-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #065f46;
+    margin-bottom: 4px;
+}
+
+/* LOCATION */
+.location {
+    font-size: 14px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.location-link {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #d1f0d5;
+    color: #065f46;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #a0e0a5;
+}
+
+.location-link:hover {
+    background-color: #22c55e;
+    color: #ffffff;
+    border-color: #22c55e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* DESCRIPTION BOX */
+.description-box {
+    background-color: #e6f4ea;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: #134d2c;
+    border: 1px solid #13ec22;
+    line-height: 1.5;
+    transition: background 0.2s;
+    text-align: justify;
+    flex-grow: 1; /* expand to fill card content space */
+}
+
+.description-box:hover {
+    background-color: #d1f0d5;
+}
+
+/* TOOL CARE GUIDE */
+.care-guide {
+    margin-top: 4rem;
+    background: #f1fdf1;
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid #13ec22;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+}
+
+.care-guide:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+    background-color: #e6f4ea;
+}
+
+.care-guide h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #13ec22;
+}
+
+.care-guide ul {
+    margin-left: 20px;
+}
+
+.care-guide li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #334155;
+}

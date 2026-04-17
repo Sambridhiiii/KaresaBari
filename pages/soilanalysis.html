@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Analysis - KaresaBari</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/soilanalysis.css">
+</head>
+<body>
+{% include "components/header.html" %}
+
+<main class="page-wrapper">
+    <div class="header-flex">
+        <div class="title-group">
+            <h1>Soil Classification</h1>
+            <p class="subtitle">Identify your soil type using our advanced AI to optimize your crop yield specifically for Nepal's varied climate.</p>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <section class="card upload-card">
+            <div class="card-header">
+                <div class="icon-square green">
+                    <span class="material-symbols-outlined">photo_camera</span>
+                </div>
+                <div>
+                    <h2>Upload Sample</h2>
+                    <p>Submit a clear photo of your garden soil</p>
+                </div>
+            </div>
+
+            <div class="drop-zone">
+                <div class="upload-circle">
+                    <span class="material-symbols-outlined">cloud_upload</span>
+                </div>
+                <h3>Drag and drop soil image</h3>
+                <p>Capture your soil in natural light for the most accurate results.</p>
+
+                <!-- File input button -->
+                <label class="btn-primary">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    Select from Device
+                    <input type="file" id="soilFile" accept="image/*">
+                </label>
+                <p id="fileError" style="color:red; font-size:12px; margin-top:8px;"></p>
+            </div>
+
+            <section class="card tips-card">
+                <h3>Tips for Best Photo</h3>
+                <ul>
+                    <li>Use natural lighting</li>
+                    <li>Avoid shadows</li>
+                    <li>Capture close-up soil texture</li>
+                    <li>Max file size: 15MB</li>
+                    <li>Only JPG or PNG supported</li>
+                </ul>
+            </section>
+        </section>
+
+        <div class="results-column">
+            <!-- Analysis Card -->
+            <section class="card analysis-card">
+                <div class="analysis-header">
+                    <span class="title">Analysis Result</span>
+                    <span class="live-tag">LIVE AI</span>
+                </div>
+                <div class="analysis-body">
+                    <p class="section-label">DETECTED TEXTURE</p>
+                    <div class="preview-container">
+                        <img id="analysisPreview" style="display:none;" />
+                    </div>
+                    <div class="result-text">Waiting for upload...</div>
+                    <div class="reliability-badge">
+                        --% RELIABILITY
+                    </div>
+                    <button onclick="resetAnalysis()" class="btn-secondary">
+                        Try Another Image
+                    </button>
+                </div>
+            </section>
+
+            <!-- Upload History Card BELOW analysis -->
+            <section class="card history-card">
+                <h3>Upload History</h3>
+                <div id="historyContainer" class="history-scroll">
+                    <p>No uploads yet.</p>
+                </div>
+            </section>
+        </div>
+        </div>
+    </div>
+
+    <section class="advice-section">
+        <div class="advice-header">
+            <div class="advice-title-group">
+                <div class="bulb-icon">
+                    <span class="material-symbols-outlined">tips_and_updates</span>
+                </div>
+                <div>
+                    <h3>Farmer's Advice</h3>
+                    <p>EXPERT RECOMMENDATIONS FOR YOUR SOIL TYPE</p>
+                </div>
+            </div>
+            <p class="disclaimer">*Recommendations based on characteristics of Soil in temperate climates.</p>
+        </div>
+
+        <div class="advice-grid">
+            <div class="advice-item">
+                <div class="advice-item-header">
+                    <span class="material-symbols-outlined">water_drop</span>
+                    <h4>Improve Drainage</h4>
+                </div>
+                <p>Mix in organic compost or sand to loosen the clay structure. This prevents waterlogging during monsoon and ensures roots can breathe.</p>
+            </div>
+            <div class="advice-item">
+                <div class="advice-item-header">
+                    <span class="material-symbols-outlined">grass</span>
+                    <h4>Mulching</h4>
+                </div>
+                <p>Add a layer of dried leaves or straw to maintain a stable temperature and prevent the heavy soil from cracking during dry spells.</p>
+            </div>
+            <div class="advice-item">
+                <div class="advice-item-header">
+                    <span class="material-symbols-outlined">precision_manufacturing</span>
+                    <h4>Tilling Tip</h4>
+                </div>
+                <p>Avoid tilling when the soil is very wet; it can lead to compaction that makes it even harder to work with in the future.</p>
+            </div>
+        </div>
+    </section>
+</main>
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard">
+        <!-- Content will be injected by JavaScript -->
+    </div>
+</div>
+<script>
+const soilInput = document.getElementById('soilFile');
+const historyContainer = document.getElementById('historyContainer');
+const analysisPreview = document.getElementById("analysisPreview");
+const resultTextEl = document.querySelector(".result-text");
+const badgeEl = document.querySelector(".reliability-badge");
+const modalOverlay = document.getElementById('modalOverlay');
+const modalCard = document.getElementById('modalCard');
+
+const MAX_SIZE_MB = 15; // Updated as requested
+
+soilInput.addEventListener('change', handleFile);
+
+// --- MODAL CONTROLS ---
+function showModal(content) {
+    modalCard.innerHTML = content;
+    modalOverlay.style.display = 'flex';
+}
+
+function closeModal() {
+    modalOverlay.style.display = 'none';
+}
+
+// --- FILE HANDLING & VALIDATION ---
+function handleFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // 1. Size Validation (15MB)
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        showModal(`
+            <div class="modal-icon error"><span class="material-symbols-outlined">warning</span></div>
+            <h3>File Too Large</h3>
+            <p>The image exceeds the ${MAX_SIZE_MB}MB limit. Please upload a smaller photo.</p>
+            <button class="btn-close-error" onclick="closeModal()">Try Again</button>
+        `);
+        soilInput.value = "";
+        return;
+    }
+
+    // 2. Type Validation
+    if (!file.type.startsWith("image/")) {
+        showModal(`
+            <div class="modal-icon error"><span class="material-symbols-outlined">image_not_supported</span></div>
+            <h3>Invalid Format</h3>
+            <p>Please upload a valid image file (JPG or PNG).</p>
+            <button class="btn-close-error" onclick="closeModal()">Understood</button>
+        `);
+        soilInput.value = "";
+        return;
+    }
+
+    analysisPreview.src = URL.createObjectURL(file);
+    analysisPreview.style.display = "block";
+    uploadToAI(file);
+}
+
+// --- AI UPLOAD & NON-SOIL DETECTION ---
+// --- Updated Upload Function ---
+async function uploadToAI(file) {
+    resultTextEl.innerText = "Analyzing...";
+    badgeEl.innerText = "AI Processing...";
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+        const response = await fetch("/predict-soil", { method: "POST", body: formData });
+        const data = await response.json();
+
+        // 1. Check if AI thinks it's NOT soil (is_valid sent from backend)
+        if (data.is_valid === false || data.confidence < 40) {
+            resetAnalysis();
+            showModal(`
+                <div class="modal-icon error"><span class="material-symbols-outlined">hide_image</span></div>
+                <h3>Not Recognized</h3>
+                <p>This image doesn't look like soil. Please upload a clear, close-up photo of your garden soil.</p>
+                <button class="btn-close-error" onclick="closeModal()">Try Again</button>
+            `);
+            return;
+        }
+
+        // 2. If it is soil, show the result
+        await showResult(data);
+        
+        // 3. Add to History list immediately
+        createHistoryItem(data);
+
+    } catch (error) {
+        console.error(error);
+        showModal(`<h3>Error</h3><p>Could not connect to AI server.</p><button onclick="closeModal()">Close</button>`);
+    }
+}
+
+// --- Updated Load History on Refresh ---
+window.addEventListener("load", function () {
+    const container = document.getElementById("historyContainer");
+    container.innerHTML = "<p style='padding:20px;'>Loading your history...</p>";
+
+    fetch("/soil-history")
+        .then(res => res.json())
+        .then(data => {
+            container.innerHTML = ""; // Clear loading text
+
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='padding:20px;'>No soil reports found.</p>";
+                return;
+            }
+
+            // Loop through database results and show them
+            data.forEach(item => {
+                // Ensure we pass a consistent object format
+                createHistoryItem({
+                    id: item.id,
+                    soil: item.soil,
+                    confidence: item.confidence,
+                    image: item.image
+                });
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            container.innerHTML = "<p style='color:red;'>Failed to load history.</p>";
+        });
+});
+
+// --- DELETE CONFIRMATION ---
+function confirmDelete(id, element) {
+    showModal(`
+        <div class="modal-icon warning"><span class="material-symbols-outlined">delete_forever</span></div>
+        <h3>Delete Report?</h3>
+        <p>This will permanently remove this soil analysis from your history. This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-confirm-delete" onclick="executeDelete(${id}, '${element.id}')">Delete Now</button>
+        </div>
+    `);
+}
+
+async function executeDelete(id, elementId) {
+    const item = document.getElementById(elementId);
+    try {
+        await fetch(`/soil-history/${id}`, { method: "DELETE" });
+        item.classList.add("hide");
+        setTimeout(() => item.remove(), 400);
+        closeModal();
+    } catch (err) {
+        alert("Failed to delete.");
+    }
+}
+
+// Update createHistoryItem to use the new modal
+function createHistoryItem(data) {
+    const uniqueId = "hist-" + Date.now();
+    const item = document.createElement("div");
+    item.classList.add("history-item");
+    item.id = uniqueId;
+
+    item.innerHTML = `
+        <img src="/${data.image}">
+        <div class="history-details">
+            <span class="soil-type">${data.soil}</span>
+            <span class="confidence">${Math.floor(data.confidence)}% confidence</span>
+        </div>
+        <button class="delete-btn" onclick="confirmDelete(${data.id}, this.parentElement)">Delete</button>
+    `;
+
+    const container = document.getElementById("historyContainer");
+    if (container.innerText === "No uploads yet.") container.innerHTML = "";
+    container.prepend(item);
+    setTimeout(() => item.classList.add("show"), 50);
+}
+
+function showResult(data) {
+    return new Promise((resolve) => {
+        resultTextEl.style.opacity = 0;
+        setTimeout(() => {
+            resultTextEl.innerText = data.soil;
+            resultTextEl.style.opacity = 1;
+        }, 300);
+
+        let count = 0;
+        const target = Math.floor(data.confidence);
+        const interval = setInterval(() => {
+            count++;
+            badgeEl.innerHTML = `<span class="material-symbols-outlined fill">verified</span> ${count}% RELIABILITY`;
+            if (count >= target) { clearInterval(interval); resolve(); }
+        }, 15);
+    });
+}
+
+function resetAnalysis() {
+    analysisPreview.style.display = "none";
+    resultTextEl.innerText = "Waiting for upload...";
+    badgeEl.innerHTML = "--% RELIABILITY";
+    soilInput.value = "";
+}
+</script>
+{% include "components/footer.html" %}
+</body>
+</html>

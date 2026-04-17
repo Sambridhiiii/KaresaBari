@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notification Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/notification.css">
+</head>
+<body>
+
+{% include 'components/sidebar.html' %}
+
+<main class="main">
+<div class="container">
+
+<section class="header">
+  <h2>Notification Center</h2>
+  <p>Broadcast system-wide updates or targeted alerts.</p>
+</section>
+
+<div class="grid">
+    <!-- LEFT: Create Notification -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="icon-box">
+            <span class="material-symbols-outlined">campaign</span>
+          </div>
+          <h3>New Notification</h3>
+        </div>
+
+        <!-- Added ID to form for validation -->
+        <form id="notif-form" action="/send-notification" method="POST">
+          <div class="form-group">
+            <label>Notification Title</label>
+            <input type="text" name="title" placeholder="Enter notification title" required>
+          </div>
+
+          <div class="form-group">
+            <label>Message Body (Max 250 Words)</label>
+            <textarea id="message-text" name="message" rows="6" placeholder="Write your update here..." required></textarea>
+            <p id="word-counter" style="font-size: 11px; color: #abb9d2; margin-top: 5px; text-align: right;">0 / 250 words</p>
+          </div>
+
+          <div class="form-footer">
+            <div class="schedule">
+              <span class="material-symbols-outlined">schedule</span>
+              <span>Immediate delivery</span>
+            </div>
+
+            <button type="submit" class="btn">
+              Send
+              <span class="material-symbols-outlined">send</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="insight">
+        <div class="dot"></div>
+        <p>System active. Encrypted delivery enabled.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: History -->
+    <div>
+      <div class="history">
+        <div class="history-header">
+          <h3>Previous Broadcasts</h3>
+        </div>
+
+        {% for notification in notifications %}
+        <div class="item">
+          <div class="item-top">
+            <h4>{{ notification.title }}</h4>
+            <span class="tag">
+              {{ notification.created_at.strftime('%b %d, %Y %H:%M') }}
+            </span>
+          </div>
+
+          <p>{{ notification.message }}</p>
+
+          <div class="item-bottom">
+            <!-- Removed Emojis/Seen stats as requested -->
+            <div style="margin-left:auto;">
+              <form action="/admin/delete-notification/{{ notification.id }}" method="POST"
+                    onsubmit="return openPopup(event,this,'Delete this notification?')">
+                <button class="delete-btn">Delete</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+</div>
+</div>
+</main>
+
+<!-- POPUP -->
+<div id="popup" class="popup-overlay">
+  <div class="popup-box" id="popup-box">
+    <h3 id="popup-title">Confirm</h3>
+    <p id="popup-text"></p>
+    <div class="popup-actions" id="popup-actions">
+      <button class="cancel-btn" onclick="closePopup()">Cancel</button>
+      <button class="confirm-btn" onclick="confirmAction()">Yes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let activeForm = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  const messageInput = document.getElementById('message-text');
+  const counter = document.getElementById('word-counter');
+  const form = document.getElementById('notif-form');
+
+  // Word Counter Logic
+  messageInput.addEventListener('input', () => {
+    const words = messageInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+    counter.innerText = `${words} / 250 words`;
+    counter.style.color = words > 250 ? "#ff4d4f" : "#abb9d2";
+  });
+
+  // Intercept Main Form Submission for Word Limit
+  form.addEventListener('submit', (e) => {
+    const words = messageInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+    if (words > 250) {
+      e.preventDefault();
+      openAlertPopup("Word Limit Exceeded", "Your message is too long! Please keep it under 250 words.");
+    }
+  });
+
+  // Global Popup Functions
+  window.openPopup = function (e, form, message) {
+    e.preventDefault();
+    activeForm = form;
+    document.getElementById("popup-title").innerText = "Confirm Action";
+    document.getElementById("popup-text").innerText = message;
+    document.getElementById("popup-actions").style.display = "flex";
+    document.getElementById("popup").style.display = "flex";
+    return false;
+  };
+
+  window.openAlertPopup = function (title, message) {
+    document.getElementById("popup-title").innerText = title;
+    document.getElementById("popup-text").innerText = message;
+    document.getElementById("popup-actions").style.display = "none"; // Hide yes/no
+    
+    // Add temporary OK button
+    const okBtn = document.createElement("button");
+    okBtn.innerText = "Understood";
+    okBtn.className = "confirm-btn";
+    okBtn.id = "temp-ok-btn";
+    okBtn.onclick = closePopup;
+    document.getElementById("popup-box").appendChild(okBtn);
+    
+    document.getElementById("popup").style.display = "flex";
+  };
+
+  window.closePopup = function () {
+    document.getElementById("popup").style.display = "none";
+    activeForm = null;
+    const tempBtn = document.getElementById("temp-ok-btn");
+    if(tempBtn) tempBtn.remove();
+  };
+
+  window.confirmAction = function () {
+    if (activeForm) activeForm.submit();
+  };
+});
+</script>
+
+<!-- BG Decor remains same -->
+</body>
+</html>

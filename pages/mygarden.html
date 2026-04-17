@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaresaBari | My Garden</title>
+    <link rel="stylesheet" href="/css/mygarden.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+</head>
+<body>
+
+{% include "components/header.html" %}
+
+<main class="dashboard">
+    <!-- ================= GREETING ================= -->
+    <section class="greeting">
+        <div class="greeting-content">
+            <div class="badge-row">
+                <span class="season-badge">
+                    <span class="material-symbols-outlined icon-small">energy_savings_leaf</span>
+                    Growing Season: Spring
+                </span>
+                <span id="time-badge" class="time-badge">Loading...</span>
+            </div>
+            <h1 id="greeting-text">Namaste, {{ full_name }} 👋</h1>
+            <p>Your urban farm is thriving. Let’s grow something great today.</p>
+        </div>
+        <div class="header-actions">
+            <a href="/recommendation" class="btn-add">
+                <span class="material-symbols-outlined">add_circle</span> Add Crops
+            </a>
+        </div>
+    </section>
+
+    <!-- ================= STATS CARDS ================= -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon soil"><span class="material-symbols-outlined">Science</span></div>
+            <div class="stat-data">
+                <h3>{{ soil_count or 0 }}</h3>
+                <p>Soil Reports</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon health"><span class="material-symbols-outlined">health_and_safety</span></div>
+            <div class="stat-data">
+                <h3>{{ disease_count or 0 }}</h3>
+                <p>Health Checks</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon crops"><span class="material-symbols-outlined">potted_plant</span></div>
+            <div class="stat-data">
+                <h3>{{ crops|length }}</h3>
+                <p>Active Crops</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= SMART CHECKLIST ================= -->
+    <section class="smart-tasks">
+        <div class="section-header">
+            <h3><span class="material-symbols-outlined">task_alt</span> Daily Checklist</h3>
+            <p>Smart actions for <span id="current-period">this time</span></p>
+        </div>
+        
+        <div class="task-container">
+            <!-- Weather Task -->
+            <div class="task-item">
+                <div class="task-icon-box weather"><span class="material-symbols-outlined" id="task-icon">water_drop</span></div>
+                <div class="task-info">
+                    <p id="weather-task">Analyzing local environment...</p>
+                </div>
+            </div>
+
+            <!-- Time-Based Advice Task -->
+            <div class="task-item">
+                <div class="task-icon-box time"><span class="material-symbols-outlined" id="time-task-icon">schedule</span></div>
+                <div class="task-info">
+                    <p id="time-based-advice">Checking garden routine...</p>
+                </div>
+            </div>
+
+            <!-- Harvest Alerts -->
+            {% for crop in crops %}
+                {% if crop.progress >= 100 %}
+                <div class="task-item alert">
+                    <div class="task-icon-box harvest"><span class="material-symbols-outlined">content_cut</span></div>
+                    <div class="task-info">
+                        <p><strong>Harvest Ready:</strong> Your {{ crop.crop }} has reached full maturity!</p>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ================= ACTIVE CROPS ================= -->
+    <section class="active-crops">
+        <div class="section-header">
+            <h3>🌿 Active Crops</h3>
+            <p>Growth tracking (Target: 30 Days)</p>
+        </div>
+
+        {% if crops and crops|length > 0 %}
+        <div class="crop-grid">
+            {% for crop in crops %}
+            <div class="crop-card">
+                <div class="crop-img-wrapper">
+                    <img src="{{ crop.image }}" alt="{{ crop.crop }}">
+                    <div class="day-tag">Day {{ crop.days }}</div>
+                </div>
+                <div class="crop-details">
+                    <h4>{{ crop.crop }}</h4>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-width="{{ crop.progress }}"></div>
+                        </div>
+                        <span class="progress-val">{{ crop.progress }}%</span>
+                    </div>
+                    <div class="crop-footer">
+                        <small>Planted: {{ crop.planted_at.strftime('%b %d') if crop.planted_at else 'Recently' }}</small>
+                        <!-- Form with handle click prevention -->
+                        <form action="/delete-crop/{{ crop.id }}" method="POST" onsubmit="handleDeleteClick(event, this)">
+                            <button type="submit" class="btn-delete-mini">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon"><span class="material-symbols-outlined">psychology_alt</span></div>
+            <p>Your garden is currently empty 🌱</p>
+            <a href="/recommendation" class="btn-primary">Find Best Crops</a>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- ================= WEATHER GLASS CARD ================= -->
+    <section class="weather-glass">
+        <div class="glass-content">
+            <div class="glass-main">
+                <h3 id="weather-city">Kathmandu</h3>
+                <div class="temp-row">
+                    <h2 id="weather-temp">--°C</h2>
+                    <span id="weather-icon-main" class="material-symbols-outlined">cloud</span>
+                </div>
+                <p id="weather-condition">Syncing weather...</p>
+            </div>
+            <div class="glass-stats">
+                <div class="g-stat">
+                    <span>Humidity</span>
+                    <strong id="weather-humidity">--%</strong>
+                </div>
+                <div class="g-stat">
+                    <span>Status</span>
+                    <strong id="weather-status">--</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- CUTE DELETE MODAL (Placed outside main for positioning) -->
+<div id="deleteConfirmModal" class="garden-modal-overlay">
+    <div class="garden-modal-card">
+        <div class="garden-modal-icon">
+            <span class="material-symbols-outlined">psychology_alt</span>
+        </div>
+        <h3>Remove this plant?</h3>
+        <p>Your garden will miss this one! Are you sure you want to remove it from your active crops?</p>
+        <div class="garden-modal-footer">
+            <button type="button" class="btn-modal-secondary" onclick="closeGardenModal()">Keep it</button>
+            <button type="button" class="btn-modal-danger" id="finalDeleteBtn">Remove</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- 1. Global Variables ---
+let activeDeleteForm = null;
+
+// --- 2. Dynamic Greeting & Night Logic ---
+function updateSmartChecklist() {
+    const now = new Date();
+    const hours = now.getHours();
+    const greetingEl = document.getElementById("greeting-text");
+    const timeBadge = document.getElementById("time-badge");
+    const periodText = document.getElementById("current-period");
+    const adviceText = document.getElementById("time-based-advice");
+    const adviceIcon = document.getElementById("time-task-icon");
+
+    let period = "";
+    let advice = "";
+    let icon = "";
+
+    if (hours >= 5 && hours < 12) {
+        greetingEl.innerHTML = "Good Morning, {{ full_name }} ☀️";
+        period = "the Morning";
+        advice = "Perfect time for deep watering before the sun gets harsh.";
+        icon = "sunny";
+        timeBadge.style.background = "#fff9c4";
+        timeBadge.style.color = "#fbc02d";
+        timeBadge.innerHTML = "Morning Phase";
+    } else if (hours >= 12 && hours < 17) {
+        greetingEl.innerHTML = "Good Afternoon, {{ full_name }} 🌤️";
+        period = "the Afternoon";
+        advice = "Check soil moisture. Provide shade if leaves look wilted.";
+        icon = "wb_sunny";
+        timeBadge.style.background = "#ffe0b2";
+        timeBadge.style.color = "#f57c00";
+        timeBadge.innerHTML = "Afternoon Phase";
+    } else if (hours >= 17 && hours < 21) {
+        greetingEl.innerHTML = "Good Evening, {{ full_name }} 🌆";
+        period = "the Evening";
+        advice = "Check for nocturnal pests (snails/slugs) and plan tomorrow's harvest.";
+        icon = "routine";
+        timeBadge.style.background = "#e1f5fe";
+        timeBadge.style.color = "#0288d1";
+        timeBadge.innerHTML = "Evening Phase";
+    } else {
+        greetingEl.innerHTML = "Good Night, {{ full_name }} 🌙";
+        period = "the Night";
+        advice = "Garden is resting. Avoid late watering to prevent fungal growth.";
+        icon = "bedtime";
+        timeBadge.style.background = "#f3e5f5";
+        timeBadge.style.color = "#7b1fa2";
+        timeBadge.innerHTML = "Night Phase";
+    }
+
+    periodText.innerText = period;
+    adviceText.innerText = advice;
+    adviceIcon.innerText = icon;
+}
+
+// --- 3. Weather API ---
+async function loadWeather() {
+    try {
+        const res = await fetch("/weather");
+        const data = await res.json();
+
+        document.getElementById("weather-temp").innerText = Math.round(data.temperature) + "°C";
+        document.getElementById("weather-condition").innerText = data.description;
+        document.getElementById("weather-humidity").innerText = data.humidity + "%";
+        document.getElementById("weather-status").innerText = data.condition;
+        
+        const taskText = document.getElementById("weather-task");
+        const taskIcon = document.getElementById("task-icon");
+
+        if (data.rain) {
+            taskText.innerHTML = "<b>Rain Alert:</b> Free watering today! Ensure your pots have good drainage. 🌧️";
+            taskIcon.innerText = "umbrella";
+        } else if (data.temperature > 28) {
+            taskText.innerHTML = "<b>Heat Alert:</b> It's hot outside. Water early and check soil again at dusk.";
+            taskIcon.innerText = "heat_gradient";
+        } else {
+            taskText.innerHTML = "Environment looks stable. Focus on organic nutrients today.";
+            taskIcon.innerText = "water_drop";
+        }
+    } catch (e) {
+        console.error("Weather load failed");
+    }
+}
+
+// --- 4. Delete Modal Logic ---
+
+// Triggered when form submit is attempted
+function handleDeleteClick(event, form) {
+    event.preventDefault(); // Stop immediate submission
+    activeDeleteForm = form; // Store the form reference
+    document.getElementById('deleteConfirmModal').style.display = 'flex'; // Show modal
+}
+
+// Closes modal and clears reference
+function closeGardenModal() {
+    document.getElementById('deleteConfirmModal').style.display = 'none';
+    activeDeleteForm = null;
+}
+
+// Execution logic for the "Remove" button inside modal
+document.getElementById('finalDeleteBtn').onclick = function() {
+    if (activeDeleteForm) {
+        activeDeleteForm.submit(); // Submit the stored form
+    }
+};
+
+// Close modal if user clicks outside of the modal card
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteConfirmModal');
+    if (event.target == modal) {
+        closeGardenModal();
+    }
+});
+
+// --- 5. Initializations ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Fill progress bars
+    document.querySelectorAll('.progress-fill').forEach(bar => {
+        bar.style.width = bar.getAttribute('data-width') + '%';
+    });
+    
+    updateSmartChecklist();
+    loadWeather();
+});
+</script>
+
+{% include "components/footer.html" %}
+
+</body>
+</html>
