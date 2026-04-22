@@ -100,20 +100,27 @@ def get_weather():
         data = response.json()
 
         if data.get("cod") != 200:
+            print(f"Weather Error: {data}") # Check your terminal if this prints
             return JSONResponse({"error": "Invalid weather data"}, status_code=400)
 
-        weather_main = data["weather"][0]["main"].lower()
+        weather_main = data["weather"][0]["main"]
+        weather_desc = data["weather"][0]["description"]
+        temp = data["main"]["temp"]
+        humi = data["main"]["humidity"]
 
         return {
             "city": CITY,
-            "temperature": data["main"]["temp"],
-            "humidity": data["main"]["humidity"],
-            "condition": data["weather"][0]["main"],
-            "description": data["weather"][0]["description"],
-            "rain": "rain" in weather_main   # ✅ NEW (very important)
+            "temperature": temp, 
+            "temp": temp,           # Added for JS compatibility
+            "humidity": humi,
+            "condition": weather_main,
+            "status": weather_main,  # Added for JS compatibility
+            "description": weather_desc,
+            "rain": "rain" in weather_main.lower() or "rain" in weather_desc.lower()
         }
 
-    except Exception:
+    except Exception as e:
+        print(f"Server Error: {e}")
         return JSONResponse({"error": "Weather fetch failed"}, status_code=500)
 
 # ---------------------------------
@@ -178,6 +185,7 @@ def handle_reset_password(
 # ---------------------------------
 # REGISTER (AUTH)
 # ---------------------------------
+# --- main.py snippet ---
 @app.post("/register")
 def register_user(
     request: Request,
@@ -187,19 +195,23 @@ def register_user(
     confirm_password: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    # Check if passwords match (Backend safety)
     if password != confirm_password:
         return templates.TemplateResponse("auth/register.html", {
             "request": request, 
             "error": "Passwords do not match! ⚠️"
         })
 
+    # CHECK IF USER EXISTS
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
+        # This is the important part!
         return templates.TemplateResponse("auth/register.html", {
             "request": request, 
             "error": "Email already registered! ⚠️"
         })
 
+    # If all good, create user...
     user = User(
         full_name=full_name,
         email=email,
@@ -207,7 +219,6 @@ def register_user(
     )
     db.add(user)
     db.commit()
-    db.refresh(user)
     return RedirectResponse(url="/login", status_code=303)
 
 # ---------------------------------
@@ -333,19 +344,29 @@ def admin_analytics(request: Request, db: Session = Depends(get_db), user: User 
         "recent_soil": recent_soil,
         "recent_disease": processed_disease
     })
+import math
+
 @app.get("/admin/toolsmanagement", response_class=HTMLResponse)
 def admin_tools(request: Request, page: int = 1, db: Session = Depends(get_db), user: User = Depends(admin_required)):
     limit = 5
     offset = (page - 1) * limit
 
+    # Get tools for current page
     tools = db.query(models.Tool).offset(offset).limit(limit).all()
-    total = db.query(models.Tool).count()
+    
+    # Get total count
+    total_count = db.query(models.Tool).count()
+    
+    # Correct math for total pages
+    total_pages = math.ceil(total_count / limit) if total_count > 0 else 1
 
     return templates.TemplateResponse("admin/toolsmanagement.html", {
         "request": request,
         "tools": tools,
-        "page": page,
-        "total_pages": (total // limit) + 1
+        "current_page": page,
+        "total_pages": total_pages,
+        "prev_page": page - 1 if page > 1 else None,
+        "next_page": page + 1 if page < total_pages else None
     })
 # ---------------------------------
 # User PAGE
@@ -507,7 +528,7 @@ def tools_page(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse("tools.html", {
         "request": request,
-        "tools": tools   # 👈 send to frontend
+        "tools": tools   #  send to frontend
     })
 
 # ---------------------------------
@@ -626,6 +647,7 @@ def view_disease_report(report_id: int, request: Request, db: Session = Depends(
         "result": result_data,
         "uploaded_file": report.image,
         "history": history
+        
     })
 
 # --- 2. DELETE REPORT ---
@@ -1100,13 +1122,9 @@ async def recommend(request: Request):
         "climate_zone": form.get("climate_zone", ""),
         "temperature": float(form.get("temperature") or 25)
     }
-
     results = predict_crop(input_data)
-
     top3 = sorted(results, key=lambda x: x.get("confidence", 0), reverse=True)[:3]
-
     formatted_results = []
-
     for r in top3:
         crop_name = r.get("crop").lower().strip()
 

@@ -211,21 +211,27 @@ body {
 }
 
 /* --- Navigation --- */
+/* Update or add this in your CSS file */
 .back-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 30px;
+  margin-bottom: 20px; /* Space between link and the card */
   color: var(--text-muted);
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
   transition: var(--transition);
+  cursor: pointer;
 }
 
 .back-link:hover {
   color: var(--primary);
-  transform: translateX(-5px);
+  transform: translateX(-5px); /* Gentle slide effect to the left */
+}
+
+.back-link .material-symbols-outlined {
+  font-size: 20px;
 }
 /* --- Word Counter Styling --- */
 .word-counter {

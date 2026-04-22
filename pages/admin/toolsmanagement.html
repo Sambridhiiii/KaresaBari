@@ -4,10 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tools Management - KaresaBari</title>
-
   <link rel="stylesheet" href="../../css/toolsmanagement.css">
-
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 </head>
@@ -16,70 +13,39 @@
 {% include 'components/sidebar.html' %}
 
 <main class="main-content">
-
   <!-- ================= REGISTER TOOL ================= -->
   <section class="section register-tool">
     <div class="section-header">
       <h2>Register Equipment</h2>
       <p>Add new gardening tools to the system.</p>
     </div>
-
     <div class="grid-container">
-
-      <!-- FORM -->
       <div class="form-container">
         <form id="toolForm" action="/admin/add-tool" method="POST" enctype="multipart/form-data">
-
-          <div class="form-group">
-            <label>Tool Name</label>
-            <input type="text" name="name" required>
-          </div>
-
-          <div class="form-group">
-            <label>Store Name</label>
-            <input type="text" name="store_name" required>
-          </div>
-
-          <div class="form-group">
-            <label>Location</label>
-            <input type="text" name="location" required>
-          </div>
-
+          <div class="form-group"><label>Tool Name</label><input type="text" name="name" required></div>
+          <div class="form-group"><label>Store Name</label><input type="text" name="store_name" required></div>
+          <div class="form-group"><label>Location</label><input type="text" name="location" required></div>
           <div class="form-group">
             <label>Description (Max 75 Words)</label>
             <textarea name="description" id="descriptionInput" placeholder="Describe the tool..." required style="min-height: 120px;"></textarea>
-            <!-- Real-time word counter -->
             <p id="wordCountLabel" style="font-size: 0.75rem; color: #4be277; margin-top: 5px; font-weight: 600;">
                 Word Count: <span id="currentCount">0</span> / 75
             </p>
           </div>
-
-          <!-- Hidden file input -->
           <input type="file" id="hiddenFileInput" name="image" style="display:none;" accept="image/*">
-
           <div class="form-actions">
-            <button type="submit" id="submitBtn">
-              <span class="material-symbols-outlined">add</span>
-              Add Tool
-            </button>
+            <button type="submit" id="submitBtn"><span class="material-symbols-outlined">add</span>Add Tool</button>
           </div>
-
         </form>
       </div>
 
-      <!-- RIGHT SIDE UPLOAD -->
       <div class="image-upload-container">
         <div class="upload-box" id="dropZone" onclick="document.getElementById('hiddenFileInput').click()">
-          <div class="upload-icon">
-            <span class="material-symbols-outlined">upload_file</span>
-          </div>
+          <div class="upload-icon"><span class="material-symbols-outlined">upload_file</span></div>
           <h3>Upload Tool Image</h3>
           <p>Click to select image (Max 15MB)</p>
-          
-          <!-- Image Preview -->
           <img id="previewImage" style="display:none; margin-top:10px; width:100%; border-radius:10px; border: 2px solid #4be277;">
         </div>
-
         <div class="ai-prediction">
           <div class="ai-info">
             <h3>Smart Upload</h3>
@@ -96,7 +62,6 @@
       <h2>Tool Inventory</h2>
       <p class="inventory-description">Manage all registered tools.</p>
     </div>
-
     <div class="table-container">
       <table>
         <thead>
@@ -122,24 +87,48 @@
             <td>{{ tool.location }}</td>
             <td class="action-buttons">
               <a href="/admin/edit-tool/{{ tool.id }}" class="btn-edit">✏️ Edit</a>
-              <form action="/admin/delete-tool/{{ tool.id }}" method="POST" class="delete-form">
-                <button type="submit" class="btn-delete">🗑️ Delete</button>
-              </form>
+              <!-- Updated Delete Form -->
+              <button type="button" class="btn-delete" onclick="openDeleteModal('{{ tool.id }}', this)">🗑️ Delete</button>
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        {% if prev_page %}
+            <a href="/admin/toolsmanagement?page={{ prev_page }}">Previous</a>
+        {% else %}
+            <span style="opacity: 0.5; cursor: not-allowed; background: #222a3d;">Previous</span>
+        {% endif %}
+        <span class="page-info">Page {{ current_page }} of {{ total_pages }}</span>
+        {% if next_page %}
+            <a href="/admin/toolsmanagement?page={{ next_page }}">Next</a>
+        {% else %}
+            <span style="opacity: 0.5; cursor: not-allowed; background: #222a3d;">Next</span>
+        {% endif %}
+    </div>
   </section>
 </main>
 
-<!-- ================= MODAL HTML (REUSABLE POPUP) ================= -->
+<!-- ================= CUSTOM ALERT MODAL (Validation) ================= -->
 <div id="customAlertModal" class="upload-modal" style="display: none;">
     <h3 id="alertTitle" style="color: #ff6b6b;">Limit Exceeded</h3>
     <p id="alertMessage">Your description is too long.</p>
     <div class="modal-actions">
         <button class="modal-confirm" onclick="closeAlert()" style="background: #4be277; color: #000; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold;">OK</button>
+    </div>
+</div>
+
+<!-- ================= DELETE CONFIRMATION MODAL ================= -->
+<div id="deleteConfirmModal" class="upload-modal" style="display: none;">
+    <h3 style="color: #ff6b6b;">Confirm Delete</h3>
+    <p>Are you sure you want to delete this tool? This action cannot be undone.</p>
+    <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center;">
+        <button onclick="closeDeleteModal()" style="background: #2d3449; color: #fff; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;">Cancel</button>
+        <button id="finalDeleteBtn" style="background: #ff6b6b; color: #fff; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold;">Yes, Delete</button>
     </div>
 </div>
 
@@ -151,34 +140,54 @@
   const currentCountSpan = document.getElementById("currentCount");
   const wordCountLabel = document.getElementById("wordCountLabel");
   const alertModal = document.getElementById("customAlertModal");
+  const deleteModal = document.getElementById("deleteConfirmModal");
 
-  // Show the Popup
+  let toolToDeleteId = null;
+  let rowToDelete = null;
+
+  // --- Alert Logic ---
   function showAlert(title, message) {
     document.getElementById("alertTitle").innerText = title;
     document.getElementById("alertMessage").innerText = message;
     alertModal.style.display = "block";
   }
+  function closeAlert() { alertModal.style.display = "none"; }
 
-  // Close the Popup
-  function closeAlert() {
-    alertModal.style.display = "none";
+  // --- Delete Modal Logic ---
+  function openDeleteModal(id, button) {
+      toolToDeleteId = id;
+      rowToDelete = button.closest("tr");
+      deleteModal.style.display = "block";
   }
 
-  // 1. LIVE WORD COUNTER LOGIC
+  function closeDeleteModal() {
+      deleteModal.style.display = "none";
+      toolToDeleteId = null;
+  }
+
+  document.getElementById("finalDeleteBtn").addEventListener("click", function() {
+      if (toolToDeleteId) {
+          fetch(`/admin/delete-tool/${toolToDeleteId}`, { method: 'POST' })
+          .then(res => {
+              if (res.ok) {
+                  rowToDelete.remove();
+                  closeDeleteModal();
+              } else {
+                  alert("Error deleting tool.");
+              }
+          });
+      }
+  });
+
+  // --- Word Counter ---
   descInput.addEventListener("input", function() {
-    // Split by spaces and filter out empty items to get accurate word count
     const words = this.value.trim().split(/\s+/).filter(word => word.length > 0);
     const count = words.length;
     currentCountSpan.innerText = count;
-
-    if (count > 75) {
-        wordCountLabel.style.color = "#ff6b6b"; // Turns Red if limit exceeded
-    } else {
-        wordCountLabel.style.color = "#4be277"; // Green if safe
-    }
+    wordCountLabel.style.color = count > 75 ? "#ff6b6b" : "#4be277";
   });
 
-  // 2. IMAGE PREVIEW
+  // --- Image Preview ---
   fileInput.addEventListener("change", function () {
     const file = this.files[0];
     if (file) {
@@ -187,52 +196,14 @@
     }
   });
 
-  // 3. FORM VALIDATION (The "Go" Block)
+  // --- Validation ---
   toolForm.addEventListener("submit", function (e) {
     const file = fileInput.files[0];
-    const words = descInput.value.trim().split(/\s+/).filter(word => word.length > 0);
-    const wordCount = words.length;
-
-    // A. Check if image is uploaded
-    if (!file) {
-        e.preventDefault();
-        showAlert("Missing File", "Please upload a tool image.");
-        return;
-    }
-
-    // B. Check Image Size (15MB Limit)
-    const maxSizeBytes = 15 * 1024 * 1024;
-    if (file.size > maxSizeBytes) {
-        e.preventDefault();
-        showAlert("File Too Large", "The image size exceeds 15MB. Please upload a smaller photo.");
-        return;
-    }
-
-    // C. Check Word Count (MAX 75 Limit)
-    if (wordCount > 75) {
-        e.preventDefault(); // This stops the form from submitting ("going")
-        showAlert("Limit Exceeded", `Your description is ${wordCount} words. Please shorten it to 75 words or less.`);
-        return;
-    }
-  });
-
-  // 4. DELETE CONFIRMATION
-  document.querySelectorAll(".delete-form").forEach(form => {
-    form.addEventListener("submit", function(e) {
-        e.preventDefault();
-        if (confirm("Are you sure you want to delete this tool?")) {
-            const row = this.closest("tr");
-            fetch(this.getAttribute("action"), {
-                method: "POST",
-                body: new FormData(this)
-            }).then(res => {
-                if (res.ok) row.remove();
-                else alert("Error deleting tool.");
-            });
-        }
-    });
+    const wordCount = descInput.value.trim().split(/\s+/).filter(word => word.length > 0).length;
+    if (!file) { e.preventDefault(); showAlert("Missing File", "Please upload a tool image."); return; }
+    if (file.size > 15 * 1024 * 1024) { e.preventDefault(); showAlert("File Too Large", "Image exceeds 15MB."); return; }
+    if (wordCount > 75) { e.preventDefault(); showAlert("Limit Exceeded", "Keep description under 75 words."); return; }
   });
 </script>
-
 </body>
 </html>

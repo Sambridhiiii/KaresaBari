@@ -239,20 +239,34 @@ function updateSmartChecklist() {
 }
 
 // --- 3. Weather API ---
+// --- 3. Weather API ---
 async function loadWeather() {
     try {
         const res = await fetch("/weather");
         const data = await res.json();
+        
+        // Log the data to your browser console (F12) so you can see what's happening
+        console.log("Weather Data Received:", data);
 
+        // Check if backend returned an error
+        if (data.error) {
+            document.getElementById("weather-condition").innerText = "Error: " + data.error;
+            return;
+        }
+
+        // --- THE FIX: Use exact keys from your main.py ---
+        // temperature, humidity, condition, description
+        
         document.getElementById("weather-temp").innerText = Math.round(data.temperature) + "°C";
-        document.getElementById("weather-condition").innerText = data.description;
+        document.getElementById("weather-condition").innerText = data.description.charAt(0).toUpperCase() + data.description.slice(1);
         document.getElementById("weather-humidity").innerText = data.humidity + "%";
         document.getElementById("weather-status").innerText = data.condition;
         
         const taskText = document.getElementById("weather-task");
         const taskIcon = document.getElementById("task-icon");
 
-        if (data.rain) {
+        // Use the 'rain' boolean sent by backend
+        if (data.rain === true) {
             taskText.innerHTML = "<b>Rain Alert:</b> Free watering today! Ensure your pots have good drainage. 🌧️";
             taskIcon.innerText = "umbrella";
         } else if (data.temperature > 28) {
@@ -263,7 +277,8 @@ async function loadWeather() {
             taskIcon.innerText = "water_drop";
         }
     } catch (e) {
-        console.error("Weather load failed");
+        console.error("Weather load failed:", e);
+        document.getElementById("weather-condition").innerText = "Weather Unavailable";
     }
 }
 

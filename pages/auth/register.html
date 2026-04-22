@@ -38,6 +38,11 @@
     <div class="auth-links">Already have an account? <a href="login">Login here</a></div>
 </div>
 
+<!-- DATA BRIDGE: This captures the error from FastAPI so JavaScript can see it -->
+{% if error %}
+    <div id="backendError" data-message="{{ error }}" style="display: none;"></div>
+{% endif %}
+
 <!-- Popup Modal -->
 <div id="popupModal" class="modal-overlay">
     <div id="modalBox" class="modal-box error">
@@ -57,8 +62,20 @@
         modal.style.display = 'flex';
     }
 
-    function closeModal() { modal.style.display = 'none'; }
+    function closeModal() { 
+        modal.style.display = 'none'; 
+    }
 
+    // CHECK FOR BACKEND ERRORS (Email already exists, etc.)
+    window.onload = function() {
+        const errorElement = document.getElementById('backendError');
+        if (errorElement) {
+            const msg = errorElement.getAttribute('data-message');
+            showPopup(msg);
+        }
+    };
+
+    // FRONTEND VALIDATION
     document.getElementById('regForm').onsubmit = (e) => {
         const name = document.getElementById('name').value.trim();
         const email = document.getElementById('email').value.trim();
